@@ -2,421 +2,628 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>나트랑 맛집</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>나트랑 먹방 레이더</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="나트랑 맛집">
-<meta name="theme-color" content="#0b6e5a">
+<meta name="apple-mobile-web-app-title" content="먹방 레이더">
+<meta name="theme-color" content="#ffd60a">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet.css">
 <style>
-:root{--bg:#f6f3ee;--card:#fffdf9;--ink:#1f2421;--sub:#5d655f;--line:#e2dcd1;--acc:#0b6e5a;--accbg:#e2f1ec;--warn:#9a4a12;--warnbg:#fbeedd;--chip:#ece6da;--grab:#00823c}
-@media (prefers-color-scheme:dark){:root{--bg:#151816;--card:#1e2320;--ink:#ecefe9;--sub:#a3ada5;--line:#303732;--acc:#5fd0b4;--accbg:#17352e;--warn:#f0b274;--warnbg:#3a2a18;--chip:#2a302c;--grab:#34c46f}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;line-height:1.55;font-size:15px;-webkit-text-size-adjust:100%}
-.wrap{max-width:760px;margin:0 auto;padding:20px 14px 60px}
-h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
-.lead{color:var(--sub);margin:0 0 12px;font-size:14px}
-.facts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-.facts span{background:var(--chip);border-radius:6px;padding:3px 8px;font-size:12.5px}
-nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:6px;padding:8px 0;border-bottom:1px solid var(--line);margin-bottom:12px}
-nav.tabs button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 4px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
-nav.tabs button[aria-selected=true]{background:var(--acc);border-color:var(--acc);color:#fff}
-@media (prefers-color-scheme:dark){nav.tabs button[aria-selected=true]{color:#0c1512}}
-.origin{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:13.5px}
-.origin label{font-weight:700;display:block;margin-bottom:4px}
-.zones{display:flex;flex-wrap:wrap;gap:6px}
-.zones button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 12px;font:inherit;font-size:13.5px;cursor:pointer}
-.zones button.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
-@media (prefers-color-scheme:dark){.zones button.on{color:#0c1512}}
-.origin .rowp{display:flex;gap:6px;margin-top:6px}
-.origin .rowp button{flex:none;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:8px;padding:0 12px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
-.origin small{display:block;color:var(--sub);margin-top:6px;font-size:12px}
-.origin .sort{display:flex;align-items:center;gap:6px;margin-top:8px;font-weight:400}
-.origin .sort input{width:auto}
-.filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
-.filters::-webkit-scrollbar{display:none}
-.filters button{white-space:nowrap;border:1px solid var(--line);background:transparent;color:var(--sub);padding:5px 11px;border-radius:999px;font-size:13px;cursor:pointer;font-family:inherit}
-.filters button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
-.card.top{border-color:var(--acc)}
-.row1{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-.name{font-weight:700;font-size:16px;letter-spacing:-.01em}
-.kr{color:var(--sub);font-size:13px}
-.badge{flex:none;background:var(--accbg);color:var(--acc);font-size:11.5px;font-weight:700;border-radius:5px;padding:2px 7px}
-.badge.must{background:var(--warnbg);color:var(--warn)}
-.meta{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;font-size:12.5px}
-.meta span{background:var(--chip);border-radius:5px;padding:2px 7px;font-variant-numeric:tabular-nums}
-.meta span.ok{background:var(--accbg);color:var(--acc);font-weight:600}
-.meta span.bad{background:var(--warnbg);color:var(--warn);font-weight:600}
-.move{border:1px dashed var(--line);border-radius:8px;padding:7px 9px;font-size:13px;margin:8px 0;font-variant-numeric:tabular-nums}
-.move b{font-weight:700}
-.card p{margin:6px 0;font-size:14px}
-.lbl{color:var(--sub);font-size:12.5px;margin-right:4px}
-.menu{list-style:none;margin:6px 0;padding:0;border-top:1px solid var(--line)}
-.menu li{padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
-.menu b{display:block;font-weight:700}
-.menu span{color:var(--sub);font-size:13px}
-.mh{font-size:12.5px;color:var(--sub);margin-top:10px;font-weight:700}
-.addr{font-size:12.5px;color:var(--sub);margin:8px 0 2px;word-break:keep-all}
-.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.btns a,.btns button{display:block;text-align:center;text-decoration:none;border-radius:8px;padding:9px 6px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.btns a.grab{background:var(--grab);border-color:var(--grab);color:#fff}
-.btns a.gm{background:var(--acc);border-color:var(--acc);color:#fff}
-@media (prefers-color-scheme:dark){.btns a.grab,.btns a.gm{color:#0c1512}}
-section[hidden]{display:none}
-h2{font-size:18px;margin:22px 0 8px}
-h3{font-size:15.5px;margin:18px 0 6px}
-.day{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
-.day h3{margin:0 0 6px}
-.tl{list-style:none;margin:0;padding:0}
-.tl li{display:flex;gap:10px;padding:6px 0;border-top:1px dashed var(--line);font-size:14px}
-.tl li:first-child{border-top:0}
-.tl time{flex:none;width:46px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--acc)}
-.note{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13.5px;margin:10px 0}
-ul.plain{padding-left:18px;margin:6px 0}
-ul.plain li{margin:4px 0;font-size:14px}
-.x{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card);font-size:14px}
-.x b{display:block}
-.x span{color:var(--sub);font-size:13px}
-table.t{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
-table.t th,table.t td{text-align:left;padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:top}
-table.t td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-table.t th.num{text-align:right}
-.meta span.open{background:var(--accbg);color:var(--acc);font-weight:700}
-.meta span.closed{background:var(--chip);color:var(--sub)}
-.menu li{cursor:pointer;display:flex;align-items:center;gap:8px}
-.menu li>div{flex:1;min-width:0}
-.menu li>i{flex:none;font-style:normal;color:var(--acc);font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 8px}
-.done{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub);margin-top:8px}
-.card.visited{opacity:.6}
-#show{position:fixed;inset:0;background:#fff;color:#111;z-index:20;display:none;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center}
+@font-face{font-family:"Do Hyeon";src:url(fonts/dohyeon-latin.woff2) format("woff2");font-display:swap;unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:"Do Hyeon";src:url(fonts/dohyeon-korean.woff2) format("woff2");font-display:swap;unicode-range:U+1100-11FF,U+3130-318F,U+AC00-D7AF}
+@font-face{font-family:Pretendard;font-weight:400;src:url(fonts/pretendard-400.woff2) format("woff2");font-display:swap}
+@font-face{font-family:Pretendard;font-weight:600;src:url(fonts/pretendard-600.woff2) format("woff2");font-display:swap}
+@font-face{font-family:Pretendard;font-weight:800;src:url(fonts/pretendard-800.woff2) format("woff2");font-display:swap}
+:root{
+  --paper:#fff;--wash:#f4f4f0;--ink:#111318;--mute:#676c78;--faint:#a3a7b0;--line:#e7e7e2;
+  --yellow:#ffd60a;--yellow-ink:#111318;--red:#e63946;--blue:#1d4ed8;--navy:#0b1530;--navy2:#13224a;
+  --open:#0b8f62;--warn:#b45309;--warnwash:#fff3df;--grab:#00a849;
+  --sab:env(safe-area-inset-bottom,0px);--sat:env(safe-area-inset-top,0px);
+  --body:Pretendard,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+  --disp:"Do Hyeon",Pretendard,system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{--paper:#0f1115;--wash:#181b21;--ink:#f2f3f5;--mute:#a0a5b0;--faint:#6b707c;--line:#262a32;--open:#3ddc97;--warn:#fbbf24;--warnwash:#33260d;--navy:#070d1f;--navy2:#101c3d}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--paper)}
+body{margin:0;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%;padding-bottom:calc(66px + var(--sab))}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.view{max-width:560px;margin:0 auto}
+.view[hidden]{display:none}
+.num{font-variant-numeric:tabular-nums}
+
+/* tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--paper);border-top:1px solid var(--line);padding-bottom:var(--sab)}
+.tabbar div{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabbar button{border:0;background:none;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--faint)}
+.tabbar button span{font-size:21px;line-height:1.1;filter:grayscale(1);opacity:.55}
+.tabbar button[aria-current=page]{color:var(--ink)}
+.tabbar button[aria-current=page] span{filter:none;opacity:1}
+
+/* home hero */
+.hero{background:var(--yellow);color:var(--yellow-ink);padding:calc(14px + var(--sat)) 16px 86px;border-radius:0 0 28px 28px}
+.hero h1{font-family:var(--disp);font-weight:400;font-size:34px;line-height:1.05;margin:0;letter-spacing:-.01em}
+.hero p{margin:6px 0 0;font-size:13.5px;font-weight:600;opacity:.8}
+.where{margin-top:12px;display:inline-flex;align-items:center;gap:6px;background:#111318;color:#fff;border:0;border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:600}
+.where i{font-style:normal;opacity:.6;font-size:11px}
+.radarcard{margin:-72px 12px 0;background:var(--navy);color:#fff;border-radius:26px;padding:14px 14px 12px;position:relative;box-shadow:0 14px 30px -14px rgba(11,21,48,.7)}
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rhead b{font-family:var(--disp);font-weight:400;font-size:19px}
+.seg{display:flex;background:rgba(255,255,255,.1);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;color:rgba(255,255,255,.7);font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:999px}
+.seg button[aria-pressed=true]{background:var(--yellow);color:#111318}
+.scope{position:relative;width:100%;max-width:400px;aspect-ratio:1;margin:12px auto 6px;border-radius:50%;background:radial-gradient(circle,var(--navy2) 0,var(--navy) 72%);overflow:visible}
+.scope .ring{position:absolute;border:1px solid rgba(255,255,255,.16);border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%)}
+.scope .ring.r1{width:33.3%;height:33.3%}.scope .ring.r2{width:66.6%;height:66.6%}.scope .ring.r3{width:100%;height:100%;border-color:rgba(255,255,255,.3)}
+.scope .lab{position:absolute;left:50%;transform:translate(-50%,-50%);font-size:10.5px;color:rgba(255,255,255,.55);background:var(--navy);padding:0 5px;border-radius:6px}
+.scope .axis{position:absolute;background:rgba(255,255,255,.08)}
+.scope .axis.h{left:0;right:0;top:50%;height:1px}.scope .axis.v{top:0;bottom:0;left:50%;width:1px}
+.sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,214,10,.42),rgba(255,214,10,0) 70deg,rgba(255,214,10,0));animation:spin 4.5s linear infinite;pointer-events:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.me{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px;border-radius:50%;background:var(--yellow);box-shadow:0 0 0 5px rgba(255,214,10,.25)}
+.north{position:absolute;width:20px;height:20px;margin:-10px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
+.blip{position:absolute;width:34px;height:34px;margin:-17px;border-radius:50%;border:2px solid #fff;background:#fff;font-size:17px;line-height:1;display:grid;place-items:center;padding:0;box-shadow:0 3px 8px rgba(0,0,0,.45);transition:transform .15s}
+.blip.closed{opacity:.5;filter:grayscale(.9)}
+.blip.top{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,214,10,.45),0 3px 8px rgba(0,0,0,.45)}
+.blip.sel{transform:scale(1.28);z-index:3;border-color:var(--red);opacity:1;filter:none}
+.blip.done::after{content:"";position:absolute;right:-3px;top:-3px;width:11px;height:11px;border-radius:50%;background:var(--red);border:2px solid #fff}
+.rfoot{font-size:12px;color:rgba(255,255,255,.6);text-align:center;min-height:18px}
+.rfoot button{border:0;background:none;color:var(--yellow);font-weight:700;font-size:12px;padding:0 0 0 4px;text-decoration:underline}
+.peek{margin-top:8px;background:#fff;color:#111318;border-radius:18px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;border:0;text-align:left}
+.peek .em{width:44px;height:44px;border-radius:14px;background:var(--yellow);display:grid;place-items:center;font-size:23px}
+.peek b{display:block;font-size:15.5px;font-weight:800;line-height:1.25}
+.peek small{display:block;font-size:12.5px;color:#676c78}
+.peek .d{font-family:var(--disp);font-size:24px;text-align:right;line-height:1}
+.peek .d small{font-family:var(--body);font-size:11.5px;margin-top:3px}
+
+.sec{padding:22px 16px 0}
+.sec h2{font-family:var(--disp);font-weight:400;font-size:22px;margin:0 0 10px}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cats button{border:0;background:var(--wash);border-radius:18px;padding:12px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.cats button span{font-size:28px;line-height:1.1}
+.cats button b{font-size:13px;font-weight:700}
+.cats button small{font-size:11px;color:var(--mute)}
+.allbtn{margin-top:8px;width:100%;border:1.5px solid var(--ink);background:none;border-radius:14px;padding:11px;font-weight:700;font-size:14px}
+.roul{margin:18px 16px 0;width:calc(100% - 32px);border:0;background:var(--red);color:#fff;border-radius:22px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;text-align:left}
+.roul b{font-family:var(--disp);font-weight:400;font-size:23px;display:block;line-height:1.15}
+.roul small{font-size:12.5px;opacity:.85}
+.roul span{font-size:40px}
+.stampbar{margin:18px 16px 0;width:calc(100% - 32px);border:1.5px dashed var(--ink);background:none;border-radius:22px;padding:14px 16px;text-align:left;display:block}
+.stampbar b{font-family:var(--disp);font-weight:400;font-size:19px}
+.stampbar .bar{height:8px;background:var(--wash);border-radius:99px;margin-top:8px;overflow:hidden}
+.stampbar .bar i{display:block;height:100%;background:var(--red);border-radius:99px}
+.stampbar small{color:var(--mute);font-size:12.5px}
+
+/* rows */
+.rows{margin:0;padding:0;list-style:none}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:13px 16px;border-bottom:1px solid var(--line)}
+.row .em{width:46px;height:46px;border-radius:15px;background:var(--wash);display:grid;place-items:center;font-size:24px;position:relative}
+.row.done .em::after{content:"✓";position:absolute;right:-5px;top:-5px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
+.row b{font-size:16px;font-weight:800;line-height:1.3;display:block}
+.row .sub{font-size:13px;color:var(--mute);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .st{font-size:12.5px;display:flex;gap:8px;align-items:center;margin-top:2px;color:var(--mute)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--faint);margin-right:4px;vertical-align:1px}
+.op .dot{background:var(--open)}
+.op{color:var(--open);font-weight:600}
+.tag{font-size:11px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--yellow);color:#111318}
+.tag.must{background:var(--ink);color:var(--paper)}
+.row .dist{font-family:var(--disp);font-size:24px;line-height:1;text-align:right;white-space:nowrap}
+.row .dist small{display:block;font-family:var(--body);font-size:11.5px;color:var(--mute);margin-top:4px}
+
+/* list page */
+.topbar{position:sticky;top:0;z-index:10;background:var(--paper);padding-top:var(--sat);border-bottom:1px solid var(--line)}
+.topbar .l1{display:flex;align-items:center;gap:6px;padding:8px 8px 6px}
+.back{border:0;background:var(--wash);width:38px;height:38px;border-radius:50%;font-size:20px;line-height:1;flex:none}
+.topbar h1{font-family:var(--disp);font-weight:400;font-size:24px;margin:0;flex:1}
+.strip{display:flex;gap:6px;overflow-x:auto;padding:2px 12px 10px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.strip button{flex:none;border:0;background:var(--wash);border-radius:999px;padding:7px 12px;font-size:13.5px;font-weight:600;white-space:nowrap}
+.strip button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.toggles{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;scrollbar-width:none}
+.toggles::-webkit-scrollbar{display:none}
+.toggles button{flex:none;border:1.5px solid var(--line);background:none;border-radius:10px;padding:6px 10px;font-size:13px;font-weight:600;color:var(--mute);white-space:nowrap}
+.toggles button[aria-pressed=true]{border-color:var(--ink);color:var(--ink);background:var(--yellow)}
+@media (prefers-color-scheme:dark){.toggles button[aria-pressed=true]{color:#111318}}
+.empty{padding:40px 20px;text-align:center;color:var(--mute)}
+
+/* detail */
+.dhead{background:var(--yellow);color:#111318;padding:calc(10px + var(--sat)) 16px 20px;border-radius:0 0 28px 28px}
+.dhead .l1{display:flex;justify-content:space-between;align-items:center;margin:0 -6px 12px}
+.dhead .back{background:rgba(17,19,24,.1)}
+.dhead .cat{font-weight:700;font-size:13.5px}
+.dhead h1{font-size:27px;font-weight:800;line-height:1.2;margin:2px 0 4px;letter-spacing:-.01em}
+.dhead p{margin:0;font-size:15px;font-weight:600;opacity:.8}
+.dhead .st{margin-top:10px;font-size:13.5px;font-weight:700;display:inline-block;background:#111318;color:#fff;border-radius:999px;padding:5px 12px}
+.dhead .st.op .dot{background:#3ddc97}
+.dhead .st.op{color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);margin:16px 16px 0;border:1.5px solid var(--ink);border-radius:20px;overflow:hidden}
+.stats div{padding:12px 8px;text-align:center;border-left:1.5px solid var(--ink)}
+.stats div:first-child{border-left:0}
+.stats b{display:block;font-family:var(--disp);font-weight:400;font-size:23px;line-height:1.1}
+.stats small{display:block;font-size:11.5px;color:var(--mute);margin-top:3px}
+.acts{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px;padding:12px 16px 0}
+.acts a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;border-radius:16px;padding:11px 4px;font-weight:800;font-size:14px;text-align:center;line-height:1.2}
+.acts a span{font-size:20px}
+.acts .gmap{background:var(--ink);color:var(--paper)}
+.acts .dir{background:var(--wash);color:var(--ink)}
+.acts .grab{background:var(--grab);color:#fff}
+.block{padding:22px 16px 0}
+.block h2{font-family:var(--disp);font-weight:400;font-size:21px;margin:0 0 8px}
+.block p{margin:0;font-size:15px}
+.menu{list-style:none;margin:0;padding:0}
+.menu li{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.menu b{display:block;font-size:16.5px;font-weight:800;line-height:1.3}
+.menu small{display:block;font-size:13.5px;color:var(--mute)}
+.menu button{border:0;background:var(--yellow);color:#111318;border-radius:12px;padding:8px 11px;font-size:13px;font-weight:800;white-space:nowrap}
+.note{background:var(--warnwash);color:var(--warn);border-radius:16px;padding:12px 14px;font-size:14.5px;font-weight:600}
+.hist{display:grid;gap:5px}
+.hist div{display:grid;grid-template-columns:30px 1fr 54px;gap:8px;align-items:center;font-size:12.5px;color:var(--mute)}
+.hist i{display:block;height:10px;border-radius:99px;background:var(--wash);overflow:hidden}
+.hist i u{display:block;height:100%;background:var(--ink);border-radius:99px}
+.hist .num{text-align:right}
+.verdict{margin-top:10px;font-size:14px;font-weight:700}
+.verdict.bad{color:var(--warn)}
+.kv{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.kv span{color:var(--mute);font-size:13px}
+.kv button,.kv a{border:0;background:var(--wash);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700;text-decoration:none;color:var(--ink)}
+.stampbtn{margin:22px 16px 0;width:calc(100% - 32px);border:2px dashed var(--red);color:var(--red);background:none;border-radius:20px;padding:14px;font-family:var(--disp);font-size:20px}
+.stampbtn.done{border-style:solid;background:var(--red);color:#fff}
+.linkbtn{margin:10px 16px 28px;width:calc(100% - 32px);border:0;background:none;color:var(--mute);font-size:13.5px;text-decoration:underline;padding:8px}
+
+/* map */
+#v-map{max-width:none}
+#lmap{height:calc(100dvh - 66px - var(--sab));width:100%;background:var(--wash)}
+.pin{width:34px;height:34px;border-radius:50%;background:#fff;border:2px solid #111318;display:grid;place-items:center;font-size:17px;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.pin.closed{opacity:.55;filter:grayscale(.9)}
+.pin.sel{border-color:var(--red);transform:scale(1.25)}
+.pin.h{background:var(--yellow)}
+.mepin{width:18px;height:18px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 0 0 6px rgba(29,78,216,.25)}
+.mappeek{position:fixed;left:12px;right:12px;width:auto;bottom:calc(78px + var(--sab));z-index:15;max-width:536px;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.mapbtn{position:fixed;right:12px;top:calc(12px + var(--sat));z-index:15;border:0;background:var(--paper);color:var(--ink);border-radius:999px;padding:9px 14px;font-weight:700;font-size:13.5px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.leaflet-container{font-family:var(--body)}
+
+/* plan */
+.days{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:10px 12px}
+.days button{border:0;background:var(--wash);border-radius:14px;padding:8px 0;font-size:12px;color:var(--mute);font-weight:600}
+.days button b{display:block;font-family:var(--disp);font-weight:400;font-size:20px;color:var(--ink)}
+.days button[aria-pressed=true]{background:var(--yellow);color:#111318}
+.days button[aria-pressed=true] b{color:#111318}
+.tl{list-style:none;margin:0;padding:4px 16px 20px}
+.tl>li{display:grid;grid-template-columns:54px 1fr;gap:6px;padding:14px 0;border-bottom:1px solid var(--line)}
+.tl time{font-family:var(--disp);font-size:20px;line-height:1.2}
+.tl h3{margin:0;font-size:16px;font-weight:800}
+.tl p{margin:2px 0 0;font-size:13.5px;color:var(--mute)}
+.pl{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;margin-top:8px;border:0;background:var(--wash);border-radius:14px;padding:9px 10px;text-align:left}
+.pl span{font-size:22px}
+.pl b{display:block;font-size:14.5px;font-weight:800;line-height:1.25}
+.pl small{font-size:12px;color:var(--mute)}
+.pl i{font-style:normal;font-family:var(--disp);font-size:17px}
+
+/* stamps */
+.shead{background:var(--red);color:#fff;padding:calc(16px + var(--sat)) 16px 22px;border-radius:0 0 28px 28px}
+.shead h1{font-family:var(--disp);font-weight:400;font-size:32px;margin:0;line-height:1.1}
+.shead p{margin:6px 0 0;font-weight:600;opacity:.9}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;padding:20px 12px}
+.board button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0}
+.board .s{width:64px;height:64px;border-radius:50%;border:2px dashed var(--faint);display:grid;place-items:center;font-size:28px;filter:grayscale(1);opacity:.4}
+.board .on .s{border:3px solid var(--red);filter:none;opacity:1;transform:rotate(-10deg);background:rgba(230,57,70,.08)}
+.board small{font-size:11px;color:var(--mute);text-align:center;line-height:1.25;max-width:78px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.board .on small{color:var(--ink);font-weight:700}
+
+/* guide */
+.ghead{padding:calc(18px + var(--sat)) 16px 6px}
+.ghead h1{font-family:var(--disp);font-weight:400;font-size:30px;margin:0}
+details{border-bottom:1px solid var(--line);padding:0 16px}
+summary{list-style:none;padding:15px 0;font-weight:800;font-size:16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--disp);font-size:24px;line-height:1}
+details[open] summary::after{content:"–"}
+details .in{padding:0 0 16px;font-size:14.5px}
+details .in p{margin:0 0 8px}
+details ul{margin:0;padding-left:18px}
+details li{margin:5px 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+td,th{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;white-space:nowrap}
+.ph{display:grid;gap:8px}
+.ph button{border:0;background:var(--wash);border-radius:14px;padding:11px 14px;text-align:left}
+.ph b{display:block;font-size:16px;font-weight:800}
+.ph small{color:var(--mute);font-size:13px}
+
+/* overlays */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
+.scrim.on{display:flex}
+.sheet{width:100%;max-width:560px;background:var(--paper);border-radius:26px 26px 0 0;padding:18px 16px calc(18px + var(--sab));max-height:86dvh;overflow:auto}
+.sheet h2{font-family:var(--disp);font-weight:400;font-size:24px;margin:0 0 12px}
+.opt{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:var(--wash);border-radius:16px;padding:14px;margin-bottom:8px;font-weight:700;font-size:15.5px;text-align:left}
+.opt small{display:block;font-weight:400;color:var(--mute);font-size:12.5px}
+.opt[aria-pressed=true]{background:var(--yellow);color:#111318}
+.opt[aria-pressed=true] small{color:#444}
+.reel{background:var(--navy);color:#fff;border-radius:22px;padding:22px 14px;text-align:center;min-height:170px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.reel .e{font-size:54px;line-height:1.1}
+.reel b{font-size:21px;font-weight:800;line-height:1.25}
+.reel small{color:rgba(255,255,255,.7);font-size:13.5px}
+.reel.win{background:var(--yellow);color:#111318}
+.reel.win small{color:#333}
+.reel.win .e{animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.3) rotate(-20deg)}to{transform:none}}
+.rbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.btn{border:0;border-radius:16px;padding:14px;font-weight:800;font-size:15.5px;background:var(--wash);color:var(--ink)}
+.btn.pri{background:var(--ink);color:var(--paper)}
+.btn.red{background:var(--red);color:#fff}
+#show{position:fixed;inset:0;background:#fff;color:#111;z-index:60;display:none;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center}
 #show.on{display:flex}
-#show .vi{font-size:clamp(34px,9vw,64px);font-weight:800;line-height:1.2;word-break:keep-all}
-#show .q{font-size:clamp(22px,6vw,36px);margin-top:18px;font-weight:700}
-#show .ko{font-size:15px;color:#555;margin-top:18px}
-#show .qty{display:flex;gap:10px;align-items:center;margin-top:22px}
-#show .qty button{width:52px;height:52px;border-radius:50%;border:2px solid #111;background:#fff;color:#111;font-size:26px;font-weight:700}
-#show .close{position:absolute;top:14px;right:14px;border:0;background:#eee;color:#111;border-radius:999px;padding:10px 16px;font-size:15px;font-weight:700}
-.ph{display:grid;gap:6px}
-.ph button{text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 12px;font:inherit;cursor:pointer}
-.ph button b{display:block;font-size:15px}
-.ph button span{color:var(--sub);font-size:13px}
-.now{background:var(--accbg);border-radius:12px;padding:10px 12px;margin-bottom:10px}
-.now h2{margin:0 0 6px;font-size:14px;color:var(--acc)}
-.now .r{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line)}
-.now .r:first-of-type{border-top:0}
-.now .r button.nm{flex:1;min-width:0;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:0;cursor:pointer}
-.now .r button.nm b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.now .r button.nm span{font-size:12.5px;color:var(--sub)}
-.now .r a{flex:none;text-decoration:none;font-size:12.5px;font-weight:700;border-radius:8px;padding:7px 9px;color:#fff}
-.now .r a.g{background:var(--grab)}.now .r a.m{background:var(--acc)}
-@media (prefers-color-scheme:dark){.now .r a{color:#0c1512}}
-.quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
-.quick a,.quick button{display:block;text-align:center;text-decoration:none;border-radius:8px;padding:10px 4px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.quick a.grab{background:var(--grab);border-color:var(--grab);color:#fff}
-.quick a.gm{background:var(--acc);border-color:var(--acc);color:#fff}
-@media (prefers-color-scheme:dark){.quick a.grab,.quick a.gm{color:#0c1512}}
-.detail{margin-top:10px;border-top:1px solid var(--line);padding-top:6px}
-.detail[hidden]{display:none}
-.btns{grid-template-columns:1fr 1fr 1fr}
-.tl b.go2{color:var(--acc);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-.gpsbar{font-size:12.5px;color:var(--sub);margin-top:6px}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+#show .vi{font-size:clamp(34px,10vw,66px);font-weight:800;line-height:1.2}
+#show .q{font-size:clamp(22px,6vw,34px);margin-top:16px;font-weight:800}
+#show .ko{font-size:15px;color:#555;margin-top:16px}
+#show .qty{display:flex;gap:14px;align-items:center;margin-top:22px}
+#show .qty button{width:56px;height:56px;border-radius:50%;border:2px solid #111;background:#fff;color:#111;font-size:28px;font-weight:700}
+#show .close{position:absolute;top:calc(14px + var(--sat));right:14px;border:0;background:#eee;color:#111;border-radius:999px;padding:10px 16px;font-size:15px;font-weight:700}
+#toast{position:fixed;left:50%;bottom:calc(84px + var(--sab));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center;z-index:70}
 #toast.on{opacity:1}
-footer{color:var(--sub);font-size:12px;margin-top:24px}
+.stampfx{position:fixed;inset:0;z-index:65;display:grid;place-items:center;pointer-events:none}
+.stampfx div{font-family:var(--disp);font-size:88px;color:var(--red);border:8px solid var(--red);border-radius:50%;width:210px;height:210px;display:grid;place-items:center;transform:rotate(-14deg);animation:stamp .7s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes stamp{0%{transform:scale(3) rotate(-14deg);opacity:0}45%{transform:scale(.92) rotate(-14deg);opacity:1}100%{transform:scale(1) rotate(-14deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.sweep,.reel.win .e,.stampfx div{animation:none}.blip{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>나트랑 검증 맛집 가이드</h1>
-<p class="lead">남자 8명 워크숍용. 후보 90곳의 구글 별점 분포를 하나씩 열어 보고, 5점 몰표 가게와 한국인 대상 관광식당을 뺀 목록입니다.</p>
-<div class="facts">
-<span>11/19(목) 21:25 도착</span><span>11/20(금) 호핑</span><span>11/21~22 자유</span><span>11/23(월) 23:05 출국</span><span>숙소: 하얏트 리젠시 (44 Trần Phú)</span>
-</div>
 
-<nav class="tabs" role="tablist">
-<button role="tab" data-tab="list" aria-selected="true">맛집</button>
-<button role="tab" data-tab="plan" aria-selected="false">일정</button>
-<button role="tab" data-tab="tips" aria-selected="false">검증·거른 곳</button>
-</nav>
-
-<section id="list">
-<div class="origin">
-<label>출발 기준</label>
-<div class="zones" id="zones"></div>
-<div class="gpsbar" id="gpsbar"></div>
-<label class="sort"><input type="checkbox" id="near"> 가까운 순으로 정렬</label>
-<label class="sort"><input type="checkbox" id="onlyopen"> 지금 영업 중만 보기 <span id="vnclock" style="color:var(--sub)"></span></label>
-</div>
-<div class="now" id="now"></div>
-<div class="filters" id="filters"></div>
-<div id="cards"></div>
+<main>
+<section class="view" id="v-home">
+  <div class="hero">
+    <h1>나트랑<br>먹방 레이더</h1>
+    <p id="herosub"></p>
+    <button class="where" id="where" type="button"></button>
+  </div>
+  <div class="radarcard">
+    <div class="rhead"><b>내 주변 맛집</b><div class="seg" id="rng" role="group" aria-label="레이더 범위"></div></div>
+    <div class="scope" id="scope"></div>
+    <div class="rfoot" id="rfoot"></div>
+    <button class="peek" id="peek" type="button"></button>
+  </div>
+  <div class="sec"><h2>뭐 먹을까요?</h2><div class="cats" id="cats"></div><button class="allbtn" type="button" data-go="c-all">30곳 전체 보기</button></div>
+  <button class="roul" id="roulopen" type="button"><div><b>못 고르겠으면<br>돌려요</b><small>지금 문 연 집 중에서 하나 뽑기</small></div><span aria-hidden="true">🎰</span></button>
+  <div class="sec" style="padding-left:0;padding-right:0"><h2 style="padding:0 16px" id="nowtitle">지금 가기 좋은 곳</h2><ul class="rows" id="nowrows"></ul></div>
+  <button class="stampbar" id="stampbar" type="button"></button>
+  <div style="height:24px"></div>
 </section>
 
-<section id="plan" hidden>
-<div class="note">베트남은 한국보다 2시간 늦습니다. 깜라인 공항↔시내는 그랩으로 45분 안팎, 그랩 공시 요금은 4인승 약 34만동·7인승 약 39만동(대당)입니다. 8명은 2대.</div>
-<div class="day"><h3>11/19 (목) 도착</h3><ul class="tl">
-<li><time>21:25</time><div>깜라인 공항 도착 → 그랩 2대로 시내 이동</div></li>
-<li><time>23:00</time><div>하얏트 체크인</div></li>
-<li><time>23:20</time><div><b>Bia Hơi Hà Nội</b> 24시간 생맥줏집에서 늦은 저녁 겸 한잔 (그랩 10분). 피곤하면 호텔 앞 <b>Jelly Brew Pub</b> (도보 5분, 자정 마감)</div></li>
-</ul></div>
-<div class="day"><h3>11/20 (금) 호핑투어 → 저녁</h3><ul class="tl">
-<li><time>07:00</time><div>호핑 전 <b>Bánh Mì Phan</b> 반미 포장 (도보 7분, 7시 오픈)</div></li>
-<li><time>18:30</time><div><b>Mai Hương</b> 해산물 (도보 15분 / 그랩 6분). 호핑 뒤라 손질해 주는 편한 집으로</div></li>
-<li><time>20:30</time><div><b>Louisiane Brewhouse</b> 해변 맥주 타워 + 라이브 (마이흐엉에서 도보 6분)</div></li>
-</ul></div>
-<div class="day"><h3>11/21 (토) 자유 · 북쪽 + 고기</h3><ul class="tl">
-<li><time>08:30</time><div><b>Bún Cá Hạnh Nhiên</b> 생선국수 해장 (도보 15분 / 그랩 5분, 13시까지)</div></li>
-<li><time>10:30</time><div>포나가르 참파탑 → 머드온천 (선택)</div></li>
-<li><time>12:30</time><div><b>Hằng 66</b> 전망 테라스 해산물 점심. 가볍게 가려면 <b>Gỏi Cá Mai Cô Hằng</b> 정어리 회무침</div></li>
-<li><time>15:00</time><div>호텔 수영장·마사지 → <b>Kem Bơ Vfruit</b> 아보카도 아이스크림</div></li>
-<li><time>18:00</time><div><b>Quán Bò Tơ Năm Sánh</b> 송아지 구이+전골 (그랩 17분). 이번 일정의 고기 메인</div></li>
-<li><time>20:30</time><div><b>Bia Hơi Hà Nội</b> 2차 (그랩) 또는 호텔 앞 <b>Jelly Brew Pub</b></div></li>
-</ul></div>
-<div class="day"><h3>11/22 (일) 자유 · 시내 로컬 + 해산물 메인</h3><ul class="tl">
-<li><time>08:30</time><div><b>Phở Bò Hà Nội</b> 쌀국수 (도보 9분)</div></li>
-<li><time>12:00</time><div><b>Nem Nướng Đặng Văn Quyên</b> 넴느엉 (그랩 8분, 4층 에어컨) → 덤시장 구경. 자리만 되면 호텔 앞 <b>Hưng Hòa</b>가 맛은 한 수 위</div></li>
-<li><time>15:00</time><div><b>Bánh Xèo Cô Xuyên</b> 반쎄오 간식 (14시 오픈)</div></li>
-<li><time>17:30</time><div><b>Hải Sản Thanh Sương</b> 메인 해산물 저녁 (그랩 15분). 6시 넘으면 만석이니 일찍. 만석이면 차로 2분 <b>Tyro</b></div></li>
-<li><time>21:00</time><div>복귀 → <b>Jelly Brew Pub</b></div></li>
-</ul></div>
-<div class="day"><h3>11/23 (월) 23:05 출국</h3><ul class="tl">
-<li><time>08:30</time><div><b>Hai Cá</b> 어묵 굵은국수 (도보 14분 / 그랩 5분)</div></li>
-<li><time>11:30</time><div>체크아웃, 짐은 호텔에 맡기기</div></li>
-<li><time>12:00</time><div><b>Tiệm Cơm Bà Tôi</b> 에어컨 가정식 (도보 9분, 14시까지)</div></li>
-<li><time>14:30</time><div>마사지 2시간 (8명은 전날 예약)</div></li>
-<li><time>17:30</time><div>마지막 저녁 <b>Quán Ốc Ngon</b> 조개·소라 + 고이까마이 (도보 10분)</div></li>
-<li><time>20:00</time><div>호텔에서 짐 찾아 공항 출발 → 21:00 도착</div></li>
-</ul></div>
+<section class="view" id="v-list" hidden>
+  <div class="topbar">
+    <div class="l1"><button class="back" type="button" data-back aria-label="뒤로">‹</button><h1 id="ltitle"></h1></div>
+    <div class="strip" id="lstrip"></div>
+  </div>
+  <div class="toggles" id="ltog"></div>
+  <ul class="rows" id="lrows"></ul>
 </section>
 
-<section id="tips" hidden>
-<h2>이번에 어떻게 검증했나</h2>
-<ul class="plain">
-<li>베트남은 카카오맵 별점이 없어 <b>구글맵 별점 분포</b>(5점~1점 개수)를 후보 90곳 전부 직접 열어 확인했습니다.</li>
-<li>평소 쓰시는 기준("5점만 주는 리뷰어가 대다수면 광고")에 가장 가까운 지표로 <b>5점 비율</b>을 썼습니다. 리뷰 이벤트를 하는 집은 5점이 90%를 넘고 3~4점이 거의 없습니다.</li>
-<li><b>통과</b>: 5점 85% 이하 + 평균 4.2 이상 + 현지 매체·"현지인 집" 후기. <b>보류</b>: 85~90% 또는 리뷰 200개 미만인데 90% 이상. <b>제외</b>: 90% 이상(리뷰 250개↑), 한글 간판 관광식당, 체인, 평균 4.0 미만.</li>
-<li>한계: 로그인 없이 본 화면이라 리뷰어 한 명 한 명의 평균 별점까지는 못 봤습니다. 영업시간은 구글 등록 기준, 8명 좌석은 전화 확인을 못 했습니다.</li>
-</ul>
+<section class="view" id="v-detail" hidden></section>
 
-<h2>지난 목록에서 빠진 곳 (새 증거)</h2>
-<table class="t"><tr><th>가게</th><th class="num">구글</th><th class="num">5점 비율</th></tr>
-<tr><td>Nem Nướng Hồng Vũ</td><td class="num">4.9 · 1,272</td><td class="num">95%</td></tr>
-<tr><td>Hải sản Xuân Trà</td><td class="num">4.9 · 433</td><td class="num">96%</td></tr>
-<tr><td>Bánh mì Út Thương</td><td class="num">4.9 · 947</td><td class="num">92%</td></tr>
-<tr><td>Cơm gà Gia Phát</td><td class="num">4.9 · 262</td><td class="num">92%</td></tr>
-<tr><td>White Monkey</td><td class="num">4.8 · 332</td><td class="num">92%</td></tr>
-</table>
-<p style="font-size:13.5px;color:var(--sub)">맛이 없다는 뜻은 아닙니다. 별점을 믿을 근거가 없어서 뺐습니다.</p>
-
-<h2>판단 보류</h2>
-<table class="t"><tr><th>가게</th><th class="num">구글</th><th class="num">5점</th></tr>
-<tr><td>Nem Nướng A Long (넴느엉, 5테이블)</td><td class="num">4.8 · 669</td><td class="num">88%</td></tr>
-<tr><td>Ngọc (반깐·랍스터 국수)</td><td class="num">4.6 · 1,356</td><td class="num">85%</td></tr>
-<tr><td>Phở Khô Hưng Huỳnh (비빔 쌀국수)</td><td class="num">4.8 · 2,715</td><td class="num">89%</td></tr>
-<tr><td>Bánh căn Số 8 · Quán 24 분까</td><td class="num">4.8 · 120~170</td><td class="num">90%</td></tr>
-<tr><td>Bia Đức Paderborner · Men Tươi (맥주)</td><td class="num">4.7~4.8 · 170~180</td><td class="num">87~90%</td></tr>
-<tr><td>Altitude 루프탑 (쉐라톤 28층)</td><td class="num">4.8 · 2,270</td><td class="num">88%</td></tr>
-<tr><td>La Viet · CHU Cafe (커피)</td><td class="num">4.8~4.9</td><td class="num">92%</td></tr>
-<tr><td>Dê Đồng Nội · Lẩu Bò Anh Dũng</td><td class="num">4.3~4.5</td><td class="num">67~73%</td></tr>
-</table>
-<p style="font-size:13.5px;color:var(--sub)">마지막 두 곳은 분포는 정상인데 후기 내용이 가게 종목(염소·소고기 전골)과 안 맞아(게·피자·반쎄오 얘기) 넣지 않았습니다. 카페는 원래 5점이 많이 나오는 업종이라 가도 무방합니다.</p>
-
-<h2>제외</h2>
-<div class="x"><b>5점 90% 이상 (리뷰 이벤트 의심)</b><span>Quán Nướng Bò Vui 96% · Tiệm Phở Khói 95% · Huyền Hương 95% · QUÁN NHỎ 랍스터국수 94% · Cơm Gà B-Food 93% · Lương Sơn Cảng 93% · Bún bò Hạnh Phúc 92%("좋은 리뷰 쓰면 빵·계란") · Cơm Nhà 91% · Bánh Mì Củi 91% · Hà Linh 91% · Phố Việt 91% · Quán Nhậu Hồi Xưa 91%</span></div>
-<div class="x"><b>한국인·단체 관광식당</b><span>Xóm Mới Garden(1.7만 리뷰, 88%) · Ăn Thôi(1.2만, 88%) · Phở Hạnh Phúc(1.1만, 82%) · JJ Seafood(7.8천, 84%) · Ngọc Trai(5.3천, 87%)</span></div>
-<div class="x"><b>체인</b><span>Mộc Quán (다낭 본점 체인, 4.7 · 5,570)</span></div>
-<div class="x"><b>유명하지만 평점이 낮음</b><span>Lạc Cảnh 소고기구이 3.7 · Cơm gà Trâm Anh 3.7 · Nem Vũ Thành An 3.0 · Hạnh Xuân 4.0 · Ốc Xuân Anh 3.9 · Tám Mẹo 3.9</span></div>
-<div class="x"><b>폐업 표시</b><span>Hải sản Thái Béo · Bánh canh Bà Thừa — 현지 블로그 추천 목록에 아직 남아 있지만 구글에 영구 폐업으로 떠 있습니다.</span></div>
-<div class="x"><b>마사지숍 전반</b><span>리뷰 혜택이 일반적이라 거의 다 4.9~5.0입니다. 별점 말고 가격·위치로 고르세요.</span></div>
-
-<h2>직원에게 보여 줄 말 (누르면 크게)</h2>
-<div class="ph" id="phr"></div>
-
-<h2>8명이 다닐 때</h2>
-<ul class="plain">
-<li>그랩은 <b>항상 2대</b>. 요금 추정은 그랩 칸호아 공시 요금(4인승 기본 2km 27,000동 + km당 12,960동)에 도로 우회 35%를 더한 값이고, 피크 할증은 빠져 있습니다. 앱에 뜨는 금액이 정답입니다. 원화는 1만동≈550원으로 어림했습니다.</li>
-<li>해산물은 대부분 <b>무게로 값을 매깁니다</b>. kg 단가를 먼저 묻고 저울을 직접 보세요.</li>
-<li>골목 로컬집은 현금만 받는 곳이 많습니다.</li>
-<li>물티슈·땅콩은 쓰면 계산서에 올라갑니다. 필요 없으면 치워 달라고 하세요.</li>
-<li>그랩 버튼을 눌렀는데 목적지가 안 채워지면 <b>메뉴·상세 → 주소 복사</b> 후 그랩에 붙여넣으세요.</li>
-<li>한 번 연 뒤에는 데이터가 안 터져도 이 화면이 열립니다(길찾기·그랩은 데이터 필요).</li>
-</ul>
+<section class="view" id="v-map" hidden>
+  <div id="lmap"></div>
+  <button class="mapbtn" id="mapme" type="button">내 위치로</button>
+  <button class="peek mappeek" id="mappeek" type="button" hidden></button>
 </section>
 
-<footer>구글 지도 정보 기준 (2026-11-16 조회). 거리는 직선거리, 이동 시간·요금은 추정입니다.</footer>
+<section class="view" id="v-plan" hidden>
+  <div class="ghead"><h1>4박 5일 일정</h1></div>
+  <div class="days" id="days"></div>
+  <ol class="tl" id="tl"></ol>
+</section>
+
+<section class="view" id="v-stamps" hidden>
+  <div class="shead"><h1 id="stitle"></h1><p id="ssub"></p></div>
+  <div class="board" id="board"></div>
+</section>
+
+<section class="view" id="v-guide" hidden>
+  <div class="ghead"><h1>가이드</h1></div>
+  <details open><summary>직원에게 보여 줄 말</summary><div class="in"><div class="ph" id="phr"></div></div></details>
+  <details><summary>8명이 다닐 때</summary><div class="in"><ul>
+    <li>그랩은 항상 2대를 부르세요. 7인승도 8명은 못 탑니다.</li>
+    <li>해산물은 대부분 무게로 값을 매깁니다. kg당 가격을 먼저 묻고 저울을 직접 보세요.</li>
+    <li>골목의 로컬 식당은 현금만 받는 곳이 많습니다.</li>
+    <li>물티슈와 땅콩은 쓰면 계산서에 올라갑니다. 필요 없으면 치워 달라고 하세요.</li>
+    <li>공항에서 시내까지는 그랩으로 45분쯤 걸리고, 요금은 4인승 약 34만동, 7인승 약 39만동입니다.</li>
+  </ul></div></details>
+  <details><summary>맛집을 어떻게 골랐나</summary><div class="in">
+    <p>베트남은 카카오맵 별점이 없어서 구글맵 별점 분포(5점부터 1점까지 개수)를 후보 90곳 모두 직접 열어 확인했습니다.</p>
+    <p>리뷰 이벤트를 하는 집은 5점이 90%를 넘고 3~4점이 거의 없습니다. 그래서 5점 비율이 85% 이하이고 평균 4.2 이상인 집만 넣었습니다. 한글 간판을 단 관광식당, 체인점, 평균 4.0 미만인 집은 뺐습니다.</p>
+    <p>로그인 없이 본 화면이라 리뷰어 한 명 한 명의 평균 별점까지는 보지 못했습니다. 영업시간은 구글에 등록된 내용이고, 8명 자리는 전화로 확인하지 못했습니다.</p>
+  </div></details>
+  <details><summary>별점이 높아도 뺀 곳</summary><div class="in">
+    <table><tr><th>가게</th><th class="num">구글</th><th class="num">5점 비율</th></tr>
+    <tr><td>Nem Nướng Hồng Vũ</td><td class="num">4.9</td><td class="num">95%</td></tr>
+    <tr><td>Hải sản Xuân Trà</td><td class="num">4.9</td><td class="num">96%</td></tr>
+    <tr><td>Quán Nướng Bò Vui</td><td class="num">4.9</td><td class="num">96%</td></tr>
+    <tr><td>Tiệm Phở Khói</td><td class="num">4.9</td><td class="num">95%</td></tr>
+    <tr><td>Huyền Hương</td><td class="num">4.9</td><td class="num">95%</td></tr>
+    <tr><td>Lương Sơn Cảng</td><td class="num">4.9</td><td class="num">93%</td></tr>
+    <tr><td>Bánh mì Út Thương</td><td class="num">4.9</td><td class="num">92%</td></tr>
+    <tr><td>Bún bò Hạnh Phúc</td><td class="num">4.9</td><td class="num">92%</td></tr>
+    <tr><td>Cơm gà Gia Phát</td><td class="num">4.9</td><td class="num">92%</td></tr>
+    </table>
+    <p style="margin-top:10px">맛이 없다는 뜻은 아닙니다. 별점을 믿을 근거가 부족해서 뺐습니다.</p>
+    <p>관광객 위주라 뺀 곳: Xóm Mới Garden, Ăn Thôi, Phở Hạnh Phúc, JJ Seafood, Ngọc Trai. 체인이라 뺀 곳: Mộc Quán.</p>
+    <p>유명하지만 평점이 낮은 곳: Lạc Cảnh 3.7, Cơm gà Trâm Anh 3.7, Nem Vũ Thành An 3.0.</p>
+    <p>구글에 폐업으로 나오는 곳: Hải sản Thái Béo, Bánh canh Bà Thừa.</p>
+  </div></details>
+  <details><summary>판단을 미룬 곳</summary><div class="in">
+    <p>5점 비율이 85~90%이거나 리뷰가 너무 적어서 넣지도 빼지도 못한 곳입니다. 가 보셔도 괜찮습니다.</p>
+    <ul><li>Nem Nướng A Long (넴느엉, 88%)</li><li>Ngọc (반깐, 랍스터 국수, 85%)</li><li>Phở Khô Hưng Huỳnh (비빔 쌀국수, 89%)</li><li>Men Tươi, Bia Đức Paderborner (맥주, 87~90%)</li><li>Altitude 루프탑 바 (88%)</li><li>La Viet, CHU Cafe (커피, 92%. 카페는 원래 5점이 많이 나옵니다)</li></ul>
+  </div></details>
+  <details><summary>요금과 거리 계산 방식</summary><div class="in">
+    <p>거리는 직선거리입니다. 걷는 시간과 그랩 시간은 길이 돌아가는 것을 35% 더해 어림한 값입니다.</p>
+    <p>그랩 요금은 그랩이 공시한 칸호아 4인승 요금(처음 2km 27,000동, 이후 1km마다 12,960동)으로 계산했습니다. 붐비는 시간의 할증은 빠져 있으니 앱에 뜨는 금액을 보세요. 원화는 1만동을 550원으로 어림했습니다.</p>
+  </div></details>
+  <div style="height:30px"></div>
+</section>
+</main>
+
+<nav class="tabbar" aria-label="메뉴"><div>
+  <button type="button" data-go="home"><span aria-hidden="true">📡</span>레이더</button>
+  <button type="button" data-go="map"><span aria-hidden="true">🗺️</span>지도</button>
+  <button type="button" data-go="plan"><span aria-hidden="true">🗓️</span>일정</button>
+  <button type="button" data-go="stamps"><span aria-hidden="true">💮</span>도장깨기</button>
+  <button type="button" data-go="guide"><span aria-hidden="true">📖</span>가이드</button>
+</div></nav>
+
+<div class="scrim" id="sheet"><div class="sheet" role="dialog" aria-modal="true" id="sheetin"></div></div>
+<div id="show" role="dialog" aria-modal="true" aria-label="직원에게 보여 주기">
+  <button class="close" type="button" id="showx">닫기</button>
+  <div class="vi" lang="vi" id="showvi"></div>
+  <div class="q" lang="vi" id="showq"></div>
+  <div class="qty" id="showqty"><button type="button" id="qm" aria-label="수량 줄이기">−</button><span id="qn" style="font-size:30px;font-weight:800;min-width:44px">1</span><button type="button" id="qp" aria-label="수량 늘리기">+</button></div>
+  <div class="ko" id="showko"></div>
 </div>
 <div id="toast" role="status"></div>
-<div id="show" role="dialog" aria-modal="true" aria-label="직원에게 보여 주기">
-<button class="close" type="button" id="showx">닫기</button>
-<div class="vi" lang="vi" id="showvi"></div>
-<div class="q" lang="vi" id="showq"></div>
-<div class="qty" id="showqty"><button type="button" id="qm" aria-label="수량 줄이기">−</button><span id="qn" style="font-size:28px;font-weight:800;min-width:40px">1</span><button type="button" id="qp" aria-label="수량 늘리기">+</button></div>
-<div class="ko" id="showko"></div>
-</div>
 
+<script src="vendor/leaflet.js"></script>
 <script>
-const D=[{"n": "Mai Hương Restaurant", "kr": "단체 해산물 · 무조건 가는 곳", "c": "해산물", "r": 4.9, "rc": 2404, "f5": 93, "lat": 12.2333338, "lng": 109.195852, "pid": "ChIJweIsAKNncDER1dgwr4OAFUk", "addr": "22 Trần Quang Khải, Nha Trang", "h": "11:00~23:00", "why": "직접 고르신 집이라 일정에 넣었습니다. 다만 5점 비율이 93%(2,240/2,404)로 리뷰 관리 흔적이 뚜렷하고 \"직원이 계속 사진 찍으라고 했다\", \"맛은 평범한데 비싸다\"는 후기가 있습니다. 서비스·편의는 좋은 집으로 보고 가세요.", "m": [["Tôm sú sốt bơ tỏi", "타이거새우 마늘버터 (후기에서 가장 많이 언급)"], ["Sò điệp / sò mai nướng mỡ hành", "가리비·키조개 파기름구이"], ["Rau muống xào tỏi", "모닝글로리 마늘볶음"], ["Cơm chiên hải sản", "해산물 볶음밥 (마무리용)"]], "tip": "무게로 파는 해산물은 주문 전에 kg 단가와 총액을 먼저 확인하세요.", "g": "넓고 직원이 손질까지 해 줘서 8명 무난", "top": 1, "st": "must", "tel": "+84382037487"}, {"n": "Quán Hải Sản Thanh Sương", "kr": "현지인 대형 해산물집 · 메인 해산물 저녁", "c": "해산물", "r": 4.4, "rc": 5473, "f5": 63, "lat": 12.213077, "lng": 109.2117637, "pid": "ChIJS7q8xflncDERSBBJWVt1JoU", "addr": "15 Trần Phú, Vĩnh Nguyên, Nha Trang", "h": "10:00~22:00", "why": "베트남 현지 매체들이 '가격표 붙여 놓고 파는 로컬 해산물집'으로 반복해서 꼽는 곳. 리뷰 5,473개에 5점 63%로 분포가 자연스럽습니다. 바닷가 야외석이 있습니다.", "m": [["Ghẹ hấp", "꽃게찜 (가장 무난, 인원수대로)"], ["Tôm sú nướng muối ớt", "타이거새우 소금고추구이"], ["Sò điệp nướng mỡ hành", "가리비 파기름구이"], ["Mực hấp gừng / mực nướng", "오징어 생강찜·구이"], ["Rau muống xào tỏi + Cơm chiên hải sản", "모닝글로리·볶음밥"]], "tip": "저녁 6시 이후 매우 붐빕니다. 17:30 전에 도착하세요.", "g": "홀이 넓어 8명 가능. 테이블 2개 붙여 달라고 하세요", "top": 1, "st": "pass", "tel": "+84374193860"}, {"n": "Quán Ốc Ngon", "kr": "조개·소라 작은 접시집", "c": "해산물", "r": 4.4, "rc": 3711, "f5": 70, "lat": 12.2366228, "lng": 109.1930314, "pid": "ChIJ-aq6LbdncDERaqiLFZBjbBw", "addr": "34/2/15 Nguyễn Thiện Thuật, Nha Trang", "h": "10:00~23:00", "why": "접시가 작고 가격이 메뉴판에 적혀 있어 여러 가지를 깔아 놓고 먹기 좋습니다. 호텔에서 걸어갈 수 있는 유일한 통과 해산물집.", "m": [["Gỏi cá mai", "정어리 회무침 쌈 (나트랑 명물, 꼭)"], ["Ốc hương rang muối ớt", "향고둥 소금고추볶음"], ["Sò điệp nướng mỡ hành", "가리비 파기름구이"], ["Nghêu hấp sả", "조개 레몬그라스찜 (국물용)"], ["Cơm chiên", "볶음밥 (후기 호평)"]], "tip": "소라 알이 작다는 후기가 있습니다. 양보다 가짓수로 시키세요. 8명이면 12~15접시.", "g": "골목 안쪽. 8명이면 저녁 피크 전(17:30)에", "top": 1, "st": "pass", "tel": "+84938399495"}, {"n": "Tyro Seafood (Ty Rô)", "kr": "남쪽 항구 쪽 수조 해산물", "c": "해산물", "r": 4.5, "rc": 1586, "f5": 78, "lat": 12.2134181, "lng": 109.20941, "pid": "ChIJF6AtWVhncDERXlQdSVSpSo4", "addr": "5A Tô Hiệu, Vĩnh Nguyên, Nha Trang", "h": "09:00~23:00", "why": "현지 매체 추천 목록에 있는 집. 5점 78%, 리뷰 1,586개. Thanh Sương이 만석일 때 대안(차로 2분).", "m": [["Tôm sốt bơ tỏi", "새우 마늘버터"], ["Cua / ghẹ rang me", "게 타마린드볶음"], ["Mực chiên", "오징어튀김"]], "tip": "18:30 이후엔 자리를 직접 잡아야 할 만큼 붐빕니다. 일부 '너무 익힌다'는 후기.", "g": "수조에서 고르는 방식. 8명 가능", "top": 0, "st": "pass", "tel": "+84905401236"}, {"n": "Nhà Hàng Hải Sản Hằng 66", "kr": "강·바다 전망 테라스 해산물", "c": "해산물", "r": 4.5, "rc": 540, "f5": 75, "lat": 12.2644475, "lng": 109.1981954, "pid": "ChIJfRkE1OBncDERr3Yk3B6JxTw", "addr": "46 Cù Huân, Vĩnh Thọ (Bắc Nha Trang)", "h": "10:30~23:30", "why": "북쪽 포나가르탑·머드온천 동선에 붙이기 좋은 집. 5층 테라스 전망. 랍스터 1kg 165만동이라는 후기가 있어 랍스터만 빼면 1인 30~40만동 선.", "m": [["Tôm sú bơ tỏi", "타이거새우 마늘버터"], ["Cua rang muối", "게 소금볶음 (후기 최고 메뉴)"], ["Mực chiên giòn", "오징어튀김"], ["Cá hấp cuốn bánh tráng", "생선찜 라이스페이퍼 쌈 (직원이 말아 줌)"]], "tip": "현금만 받는다는 후기. 영어는 잘 안 통합니다(번역기).", "g": "테라스석 넓음. 8명 가능", "top": 0, "st": "pass", "tel": "+84938266668"}, {"n": "Hải sản Nhà Tôi", "kr": "동네 사람들 해산물집", "c": "해산물", "r": 4.4, "rc": 340, "f5": 75, "lat": 12.2548769, "lng": 109.1951603, "pid": "ChIJcwZIjAlncDER7GdN3JDIu34", "addr": "24 Ngô Quyền, Xương Huân, Nha Trang", "h": "10:30~22:30", "why": "\"관광객 식당에 질려서 찾은 집, 현지인 가격\"이라는 후기. 덤시장 근처. 허름합니다.", "m": [["Mực (오징어) 요리", "\"오징어를 꼭 먹어라\"는 후기 — mực nướng / mực hấp"], ["Tôm nướng", "새우구이"], ["Nghêu / sò", "조개류"]], "tip": "소프트쉘 크랩(cua lột)은 비추천 후기. 위생은 로컬 수준.", "g": "작은 편이라 8명은 전화나 방문 확인 필요", "top": 0, "st": "pass", "tel": "+84983589092"}, {"n": "Quán Hải Sản Thanh Hiền", "kr": "북쪽 해안도로 로컬 해산물", "c": "해산물", "r": 4.4, "rc": 479, "f5": 65, "lat": 12.2654936, "lng": 109.2006475, "pid": "ChIJ-5HalXtocDERzUn3v9dVV4M", "addr": "9KA Phạm Văn Đồng, Vĩnh Hải (Bắc Nha Trang)", "h": "08:00~23:30", "why": "1층에서 해산물 고르고 2층에서 바다 보며 먹는 구조. \"현지인 집\"이라는 후기.", "m": [["Cơm chiên hải sản", "해산물 볶음밥 (누룽지처럼 바삭, 후기 다수)"], ["Tôm / ghẹ hấp", "새우·게 찜"], ["Sò nướng", "조개구이"]], "tip": "북쪽 일정(머드온천·포나가르) 있는 날에만.", "g": "2층 넓음. 8명 가능", "top": 0, "st": "pass", "tel": "+84905779262"}, {"n": "Kim Anh Quán Ốc", "kr": "현지인 줄 서는 소라집 (낮~초저녁)", "c": "해산물", "r": 4.4, "rc": 483, "f5": 68, "lat": 12.2116336, "lng": 109.2126892, "pid": "ChIJ43PTDKBncDERlC1qB_u9F9Q", "addr": "96 Trần Phú, Vĩnh Nguyên, Nha Trang", "h": "12:30~20:00", "why": "현지 글에서 '나트랑 사람들 단골 소라집'으로 나오는 길거리 집. 주문은 종이에 직접 적는 방식.", "m": [["Ốc các loại", "소라·조개 4~5종을 조리법 다르게 (rang muối 소금볶음 / nướng mỡ hành 파기름 / hấp sả 찜)"], ["Sò huyết", "피조개"]], "tip": "재료가 떨어지면 일찍 닫습니다. 대기 1시간까지 걸린다는 후기. 비싸다는 저평가도 있음.", "g": "길거리 낮은 의자. 8명은 나눠 앉을 각오", "top": 0, "st": "pass", "tel": "+84762979686"}, {"n": "Quán Hẻm Ốc Vân Đồn", "kr": "현지인 골목 해산물집", "c": "해산물", "r": 4.2, "rc": 1575, "f5": 62, "lat": 12.2346932, "lng": 109.1821407, "pid": "ChIJp1PoeohdcDERjf8iqkps9y4", "addr": "89 Vân Đồn, Phước Hòa, Nha Trang", "h": "14:00~23:00", "why": "\"일주일에 세 번 갔는데 현지인만 봤다\"는 후기. 영어 메뉴에 Best seller 표시가 있습니다.", "m": [["Tôm nướng", "새우구이"], ["Ghẹ rang me", "꽃게 타마린드볶음"], ["Canh nghêu", "조개탕"], ["Mì xào hải sản", "해산물 볶음면"]], "tip": "1~2점이 10%로 통과 집 중 높은 편이고, 먹고 탈이 났다는 후기가 1건 있습니다. 후순위.", "g": "8명 가능", "top": 0, "st": "pass", "tel": "+84787927777"}, {"n": "Hải Sản Bến Cảng", "kr": "혼로 항구 쪽 대형 해산물", "c": "해산물", "r": 4.3, "rc": 1465, "f5": 63, "lat": 12.2028583, "lng": 109.1822589, "pid": "ChIJ12kdEVVncDERdo3REBpyGUE", "addr": "Lô 5 Nguyễn Tất Thành, Hòn Rớ, Nha Trang", "h": "10:00~23:00", "why": "시내에서 멀지만 에어컨 룸이 있는 넓은 집. 랍스터를 직원이 손질해 줍니다.", "m": [["Tôm hùm", "랍스터 (kg 단가 확인)"], ["Nhum nướng mỡ hành", "성게 파기름구이"], ["Cá nướng", "생선구이 (후기 호평)"]], "tip": "거리가 멀어 왕복 그랩비가 듭니다. 굳이 갈 이유는 '에어컨 룸'.", "g": "에어컨 단체룸. 8명 가장 편함", "top": 0, "st": "pass", "tel": "+84707232723"}, {"n": "Quán Bò Tơ Năm Sánh", "kr": "송아지고기 전문 대형 로컬 식당", "c": "고기·전골", "r": 4.5, "rc": 1191, "f5": 71, "lat": 12.2547188, "lng": 109.1634651, "pid": "ChIJF3rkrwxdcDERdNHxkjmnWqw", "addr": "Tây Nha Trang (23/10 도로 방면) — 구글맵 핀으로 이동", "h": "08:00~22:00", "why": "메뉴가 전부 소고기인 현지인 단체 식당. \"늘 붐비는 데는 이유가 있다\"는 후기. 남자 8명 고기+맥주에 가장 잘 맞습니다.", "m": [["Bò tơ nướng", "송아지 구이 (메인)"], ["Bò tơ hấp", "송아지 수육 (라이스페이퍼 쌈)"], ["Bò tái chanh", "레몬 육회무침"], ["Lẩu bò", "소고기 전골 (마무리)"]], "tip": "영어가 거의 안 통합니다. 위 메뉴명을 보여 주세요. 붐빌 땐 서빙이 느리다는 후기.", "g": "야외 대형 홀. 8명 최적", "top": 1, "st": "pass", "tel": "+84772721901"}, {"n": "Nem Nướng Hưng Hòa", "kr": "넴느엉(돼지고기 구이 쌈) 가족 식당", "c": "고기·전골", "r": 4.5, "rc": 656, "f5": 70, "lat": 12.2394466, "lng": 109.1946447, "pid": "ChIJ_eGR67JncDERPBkODsuZ_bw", "addr": "46/21 Hùng Vương, Nha Trang (야시장 끝 맞은편 골목)", "h": "08:00~22:30", "why": "4.9점짜리 넴느엉집들이 5점 비율 95%로 걸러진 뒤 남은 집. 5점 70%로 분포가 정상이고 호텔에서 3분.", "m": [["Nem nướng", "넴느엉 1인분 약 5.8만동 — 8명이면 8~10인분"], ["Bánh xèo", "반쎄오"], ["Bia", "맥주 (골목 야외석)"]], "tip": "테이블이 몇 개 없는 가족 식당입니다.", "g": "8명은 한 번에 못 앉을 수 있음. 이른 시간 추천", "top": 1, "st": "pass", "tel": "+84948517868"}, {"n": "Nem Nướng Đặng Văn Quyên", "kr": "넴느엉 원조 · 4층 건물", "c": "고기·전골", "r": 4.1, "rc": 6038, "f5": 50, "lat": 12.2537197, "lng": 109.1938289, "pid": "ChIJrYhLgoZncDER6fpXnhTtHH8", "addr": "16A Lãn Ông, Xương Huân, Nha Trang (덤시장 근처)", "h": "07:30~20:30", "why": "평점은 4.1로 평범하지만 리뷰 6천 개에 분포가 자연스러운 '진짜 유명한 집'. 에어컨·4층이라 8명 자리가 확실합니다. 맛은 '골목집이 더 낫다'는 평도 있음.", "m": [["Nem nướng", "넴느엉 세트 (6롤 5.8만동)"], ["Chả ram", "튀긴 스프링롤"], ["Bò nướng lá lốt / bò nướng", "소고기 구이 12만동"], ["Cơm sườn", "돼지갈비 덮밥"]], "tip": "20:30에 닫습니다. 점심으로 쓰세요.", "g": "단체석 확실", "top": 0, "st": "pass", "tel": "+842583826737"}, {"n": "Lẩu Gà Lá É (19 Hồng Lĩnh)", "kr": "닭 전골 (레몬바질 잎)", "c": "고기·전골", "r": 4.5, "rc": 705, "f5": 82, "lat": 12.2369704, "lng": 109.1838015, "pid": "ChIJnQOePYZdcDERgOPry5NeoAg", "addr": "19 Hồng Lĩnh, Phước Hòa, Nha Trang", "h": "09:00~23:00", "why": "달랏·푸옌식 닭 전골. 2인 냄비 18만동으로 저렴. 다만 1점이 10%로 호불호가 갈립니다(닭이 질기다·위생).", "m": [["Lẩu gà lá é", "닭 전골 — 8명이면 큰 냄비 2개 + 닭 추가(thêm gà)"], ["Mì / bún thêm", "면 사리"]], "tip": "토종닭이라 질긴 식감입니다. 깔끔한 곳을 원하면 패스.", "g": "로컬 홀. 8명 가능", "top": 0, "st": "pass", "tel": "+84935328606"}, {"n": "Bún Cá Hạnh Nhiên", "kr": "나트랑식 생선국수 · 해장", "c": "로컬 한 끼", "r": 4.6, "rc": 1376, "f5": 73, "lat": 12.2407712, "lng": 109.1875853, "pid": "ChIJ2aNcK3xncDERRRKwkQbb0vQ", "addr": "32C Lê Đại Hành, Nha Trang", "h": "05:30~13:00 / 16:30~20:30", "why": "맑은 생선 육수에 어묵·해파리. 일본 국물 같다는 후기. 술 마신 다음 날 아침용 1순위.", "m": [["Bún cá sứa", "생선+해파리 국수"], ["Bún chả cá", "어묵 국수 (해파리 빼고 싶으면)"]], "tip": "13:00~16:30 브레이크.", "g": "회전 빠름. 8명 가능", "top": 1, "st": "pass", "tel": "+84905126367"}, {"n": "Bánh Canh – Bún Cá Hai Cá", "kr": "어묵 굵은국수 · 해장", "c": "로컬 한 끼", "r": 4.4, "rc": 3170, "f5": 64, "lat": 12.2375203, "lng": 109.1891731, "pid": "ChIJa4Tra31ncDERS82XykcR0mk", "addr": "156 Nguyễn Thị Minh Khai, Nha Trang", "h": "06:00~21:00", "why": "한국인 후기에 \"한국에서 팔면 해장으로 좋겠다\". 그릇이 큽니다.", "m": [["Bánh canh chả cá", "어묵 굵은 쌀국수 (메뉴판 3번대)"], ["Mực chiên", "오징어튀김 (메뉴판 9번, 후기 추천)"]], "tip": "칠리소스가 짭니다. 조금씩.", "g": "넓음. 8명 가능", "top": 0, "st": "pass", "tel": "+84976477172"}, {"n": "Bún Cá Cô Ba", "kr": "현지인 생선국수", "c": "로컬 한 끼", "r": 4.4, "rc": 645, "f5": 64, "lat": 12.2460434, "lng": 109.1940508, "pid": "ChIJmaXcI39dcDERtfmoQpY7fzE", "addr": "105 Hoàng Hoa Thám, Nha Trang", "h": "06:00~19:30", "why": "\"관광객용으로 바꾸지 않은 집\". 4~5만동.", "m": [["Bún cá đặc biệt", "스페셜 (생선살·부레·어묵·해파리)"]], "tip": "점심·저녁 피크엔 현지인으로 붐빕니다.", "g": "테이블 많음", "top": 0, "st": "pass", "tel": "+84905277953"}, {"n": "Phở Bò Hà Nội", "kr": "동네 쌀국수집", "c": "로컬 한 끼", "r": 4.5, "rc": 782, "f5": 70, "lat": 12.2405286, "lng": 109.1914031, "pid": "ChIJ84I8LHxncDER8UMRKZK_WkQ", "addr": "81 Bạch Đằng, Nha Trang", "h": "06:00~21:00", "why": "한글 간판 쌀국수집들(4.7~4.9, 5점 82~95%) 대신 고른 동네 집. 5점 70%.", "m": [["Phở tái", "살짝 익힌 소고기 쌀국수"], ["Phở tái lăn", "볶은 소고기 쌀국수"], ["Bún chả", "분짜 (현지인들이 많이 먹음)"]], "tip": "허브·라임은 달라고 해야 주는 경우가 있습니다.", "g": "선풍기 오픈형. 8명 가능", "top": 1, "st": "pass", "tel": "+84968501599"}, {"n": "Bánh Mì Phan", "kr": "줄 서는 반미", "c": "로컬 한 끼", "r": 4.5, "rc": 4242, "f5": 71, "lat": 12.2398487, "lng": 109.1928906, "pid": "ChIJUS2RKKdncDERX-2xeRMHUZ8", "addr": "164 Bạch Đằng, Nha Trang", "h": "07:00~21:30", "why": "리뷰 4,242개에 5점 71%. 4.9점대 반미집들(5점 91~92%) 대신 이쪽을 넣었습니다.", "m": [["Bánh mì thập cẩm", "모둠 (파테·삼겹)"], ["Bánh mì bò phô mai", "소고기 치즈"], ["Bánh mì tôm phô mai", "새우 치즈"]], "tip": "현금만. 20~30분 대기 후기. 한 명이 8개 주문하고 안쪽 에어컨 대기실 이용.", "g": "포장 추천", "top": 1, "st": "pass", "tel": "+84372776778"}, {"n": "Quán Cơm Tấm Sơn", "kr": "돼지갈비 덮밥", "c": "로컬 한 끼", "r": 4.4, "rc": 460, "f5": 63, "lat": 12.2534374, "lng": 109.1903439, "pid": "ChIJReBNGIdncDERAn3Aj2oKjuU", "addr": "9 Phạm Hồng Thái, Nha Trang", "h": "06:00~13:00 / 16:00~20:00", "why": "\"현지인들이 줄 서는 집\". 숯불 돼지고기에 반숙 계란.", "m": [["Cơm tấm sườn trứng", "돼지갈비+계란후라이"], ["Cơm tấm sườn bì chả", "갈비+돼지껍질채+계란찜"]], "tip": "일찍 가거나 줄을 서야 합니다.", "g": "회전 빠름", "top": 0, "st": "pass", "tel": "+842583561802"}, {"n": "Tiệm Cơm Bà Tôi", "kr": "에어컨 있는 베트남 가정식", "c": "로컬 한 끼", "r": 4.4, "rc": 1577, "f5": 72, "lat": 12.2393631, "lng": 109.1917443, "pid": "ChIJwYQPm0FncDERT_VetGtfFcI", "addr": "68/4 Đống Đa, Nha Trang", "h": "10:00~14:00 / 17:00~21:00", "why": "가정식 세트를 골라 먹는 집. 외국인 손님도 많아 '완전 로컬'은 아니지만 분포는 정상(5점 72%)이고 쾌적합니다. 1인 15~25만동.", "m": [["Cơm phần gia đình", "가정식 세트 (인원수 맞춰 반찬 선택)"], ["Canh chua", "새콤한 생선국"], ["Cá kho tộ", "뚝배기 생선조림"]], "tip": "14~17시 브레이크. 토란국(canh khoai)은 고수 향이 강합니다.", "g": "넓고 에어컨. 8명 편함", "top": 0, "st": "pass", "tel": "+842583515118"}, {"n": "Bánh Xèo Cô Xuyên", "kr": "현지인 반쎄오", "c": "로컬 한 끼", "r": 4.6, "rc": 192, "f5": 77, "lat": 12.2403241, "lng": 109.1880396, "pid": "ChIJS2wIfdtncDERcwQvRU_og3c", "addr": "36 Lê Đại Hành, Nha Trang", "h": "14:00~21:00", "why": "저녁마다 현지인으로 차는 집. 바삭한 스타일.", "m": [["Bánh xèo tôm mực", "새우·오징어 반쎄오"], ["Sữa đậu nành", "두유 (같이 팜)"]], "tip": "오후 2시쯤 엽니다. 간식·2차 안주용.", "g": "작음. 8명은 나눠 앉기", "top": 0, "st": "pass", "tel": "+84934733648"}, {"n": "Quán Bún Thịt Nướng (163 Hoàng Văn Thụ)", "kr": "숯불고기 비빔국수 20년 집", "c": "로컬 한 끼", "r": 4.4, "rc": 347, "f5": 59, "lat": 12.2505385, "lng": 109.1874692, "pid": "ChIJ4aYPJH5dcDERcbXaTU9qQsU", "addr": "163 Hoàng Văn Thụ, Nha Trang", "h": "14:30~22:00", "why": "\"20년 넘은 집, 현지인 대부분이 여기로 온다\". 1~2점이 3.5%로 낮습니다.", "m": [["Bún thịt nướng", "숯불 돼지고기 비빔 쌀국수"], ["Bánh hỏi thịt nướng", "가는 쌀국수 떡 + 구이"]], "tip": "14:30 오픈.", "g": "8명 가능", "top": 0, "st": "pass", "tel": "+842583827038"}, {"n": "Bún Thịt Nướng – Nem Ninh Hòa Cô Phước", "kr": "분팃느엉 + 넴 (낮 장사)", "c": "로컬 한 끼", "r": 4.7, "rc": 205, "f5": 83, "lat": 12.2562968, "lng": 109.1925318, "pid": "ChIJtccUrbdncDERZzCrvR0rI3A", "addr": "24B Đoàn Thị Điểm, Nha Trang (덤시장 근처)", "h": "11:30~18:00 (일 휴무)", "why": "허름한 건물의 아주머니 집. 5점 83%로 기준선 근처지만 후기 내용이 구체적입니다.", "m": [["Bún thịt nướng + nem", "구이+넴 올린 비빔국수"]], "tip": "일요일 휴무. 저녁 장사 안 함.", "g": "작음", "top": 0, "st": "pass", "tel": "+84775243579"}, {"n": "Gỏi Cá Mai Cô Hằng", "kr": "정어리 회무침 쌈 전문", "c": "로컬 한 끼", "r": 4.4, "rc": 128, "f5": 73, "lat": 12.2655672, "lng": 109.1983526, "pid": "ChIJtWhA6LBncDER-5mYIpwtL1g", "addr": "54 Tháp Bà, Vĩnh Thọ (Bắc Nha Trang)", "h": "10:30~20:00", "why": "나트랑 향토 음식. 라임에 절인 정어리를 라이스페이퍼에 싸서 소스에 찍어 먹습니다. 포나가르탑 바로 근처.", "m": [["Gỏi cá mai", "정어리 회무침 쌈 — 맥주 안주"]], "tip": "길거리 음식 수준의 가게. 날생선이 불안하면 Ốc Ngon에서 한 접시만.", "g": "작음", "top": 0, "st": "pass", "tel": ""}, {"n": "Bánh Canh Cô Thu", "kr": "동네 어묵국수", "c": "로컬 한 끼", "r": 4.6, "rc": 87, "f5": 62, "lat": 12.2454451, "lng": 109.1804465, "pid": "ChIJSUEbpoBdcDERWHRcJICGfyI", "addr": "20 Đồng Nai, Phước Hải, Nha Trang", "h": "06:00~19:00", "why": "현지 블로그 추천 집. 리뷰는 87개로 적지만 1~2점이 1%.", "m": [["Bánh canh chả cá", "어묵 굵은국수 (생선알·위 포함)"]], "tip": "주택가. 일부러 갈 정도는 아니고 근처일 때.", "g": "작음", "top": 0, "st": "pass", "tel": "+84938716369"}, {"n": "Bia Hơi Hà Nội – Hà Nội Phố", "kr": "24시간 생맥줏집", "c": "술", "r": 4.6, "rc": 85, "f5": 71, "lat": 12.2326922, "lng": 109.1799271, "pid": "ChIJwc1JERddcDERny4UMn9eqto", "addr": "Thích Quảng Đức, KĐT Hà Quang 2, Nha Trang", "h": "24시간", "why": "\"외국인이 한 명도 없었다\". 생맥주(bia hơi)에 북부식 안주. 24시간이라 도착 첫날 밤에도 됩니다.", "m": [["Bia hơi", "생맥주 — 인원수대로 계속"], ["Đậu phụ chiên / nem chua rán", "두부튀김·넴쭈아 튀김"], ["Gà / vịt / lòng", "닭·오리·내장 안주류 (메뉴판 사진 보고)"]], "tip": "리뷰 수가 85개로 적습니다. 메뉴는 구글 번역 카메라로.", "g": "넓은 야외 홀. 8명 최적", "top": 1, "st": "pass", "tel": "+84902192868"}, {"n": "Jelly Brew Pub", "kr": "호텔 앞 수제맥주 펍", "c": "술", "r": 4.6, "rc": 439, "f5": 77, "lat": 12.2395658, "lng": 109.19439, "pid": "ChIJJYphAvZncDER7oeoNcOXyos", "addr": "46.4 Hùng Vương, Nha Trang", "h": "15:00~24:00", "why": "자체 양조 탭 + 병맥 냉장고. 넴느엉 Hưng Hòa와 같은 골목이라 1차→2차가 걸어서 1분.", "m": [["Beer flight", "4종 샘플러로 시작"], ["House tap", "자체 양조 생맥"]], "tip": "작은 골목 펍이라 시끄러울 수 있습니다.", "g": "8명이면 자리 쪼개질 수 있음", "top": 0, "st": "pass", "tel": ""}, {"n": "Louisiane Brewhouse", "kr": "해변 양조장 · 라이브", "c": "술", "r": 4.3, "rc": 4692, "f5": 58, "lat": 12.2310188, "lng": 109.1988028, "pid": "ChIJxcswvkZncDERQl0fDKfK6EY", "addr": "Lô 29 Trần Phú, Nha Trang (해변)", "h": "07:00~24:00", "why": "관광객도 많지만 분포가 정상(5점 58%)인 해변 양조장. 3L·5L 타워 맥주, 저녁 라이브 밴드. 마이흐엉에서 도보 6분.", "m": [["Bia tươi 3L / 5L tower", "하우스 맥주 타워"], ["Sampler", "4종 샘플러"]], "tip": "안주(양식)는 평범하다는 후기. 맥주만.", "g": "자리 많음. 8명 최적", "top": 1, "st": "pass", "tel": "+842583521948"}, {"n": "Kem Bơ Vfruit", "kr": "아보카도 아이스크림", "c": "디저트", "r": 4.5, "rc": 3044, "f5": 67, "lat": 12.2392123, "lng": 109.1921483, "pid": "ChIJ3UtlQXxncDERvWZuM7_VRwg", "addr": "24 Tô Hiến Thành, Nha Trang", "h": "10:00~23:00", "why": "리뷰 3천 개에 5점 67%. 호텔에서 6분.", "m": [["Kem bơ", "아보카도 아이스크림"], ["Kem bơ sầu riêng", "아보카도+두리안 5만동"], ["Kem bơ dừa", "코코넛 토핑"]], "tip": "", "g": "포장도 가능", "top": 0, "st": "pass", "tel": "+84905068910"}];
-const Z=[{n:"호텔",lat:12.2409557,lng:109.1962023},{n:"야시장·여행자거리",lat:12.2375,lng:109.1945},{n:"덤시장",lat:12.2553,lng:109.1920},{n:"포나가르·머드온천",lat:12.2654,lng:109.1955},{n:"남쪽 항구·빈펄 선착장",lat:12.2125,lng:109.2120}];
-const HOTEL=Z[0];
-const cats=["전체","TOP","해산물","고기·전골","로컬 한 끼","술","디저트"];
-let cur="전체",org=HOTEL,near=false;
+const D=[{"id": "maihuong", "n": "Mai Hương", "sub": "직원이 손질해 주는 편한 해산물집", "cat": "seafood", "r": 4.9, "rc": 2404, "lat": 12.2333338, "lng": 109.195852, "pid": "ChIJweIsAKNncDER1dgwr4OAFUk", "addr": "22 Trần Quang Khải, Nha Trang", "h": "11:00~23:00", "tel": "+84382037487", "why": "꼭 가신다고 한 곳이라 넣었습니다. 서비스가 좋고 자리가 편합니다. 다만 별점은 5점이 93%로 쏠려 있고, 직원이 사진과 리뷰를 권한다는 후기가 있습니다. 맛은 기대를 조금 낮추고 가세요.", "m": [["Tôm sú sốt bơ tỏi", "갈릭버터 새우. 후기에 가장 많이 나오는 메뉴"], ["Sò điệp nướng mỡ hành", "가리비 구이"], ["Rau muống xào tỏi", "모닝글로리 마늘볶음"], ["Cơm chiên hải sản", "해산물 볶음밥"]], "note": "무게로 파는 해산물은 주문 전에 kg당 가격과 총액을 먼저 물어보세요.", "grp": "넓고 직원이 다 챙겨 줘서 8명도 편합니다.", "big": 1, "top": 1, "must": 1, "hist": [2240, 67, 36, 24, 37]}, {"id": "thanhsuong", "n": "Quán Hải Sản Thanh Sương", "sub": "현지인이 가는 대형 해산물집", "cat": "seafood", "r": 4.4, "rc": 5473, "lat": 12.213077, "lng": 109.2117637, "pid": "ChIJS7q8xflncDERSBBJWVt1JoU", "addr": "15 Trần Phú, Vĩnh Nguyên, Nha Trang", "h": "10:00~22:00", "tel": "+84374193860", "why": "베트남 현지 매체들이 가격표를 붙여 놓고 파는 로컬 해산물집으로 여러 번 꼽은 곳입니다. 바닷가 야외 자리가 있고, 이번 일정의 해산물 메인으로 잡았습니다.", "m": [["Ghẹ hấp", "꽃게찜"], ["Tôm sú nướng muối ớt", "새우 소금구이. 살짝 매콤합니다"], ["Sò điệp nướng mỡ hành", "가리비 구이"], ["Mực nướng", "오징어 구이"], ["Rau muống xào tỏi", "모닝글로리 마늘볶음"], ["Cơm chiên hải sản", "해산물 볶음밥"]], "note": "저녁 6시가 넘으면 자리가 없습니다. 5시 반 전에 도착하세요.", "grp": "홀이 넓습니다. 테이블 두 개를 붙여 달라고 하세요.", "big": 1, "top": 1, "must": 0, "hist": [3436, 1211, 429, 134, 264]}, {"id": "ocngon", "n": "Quán Ốc Ngon", "sub": "조개·소라를 작은 접시로 여러 개", "cat": "seafood", "r": 4.4, "rc": 3711, "lat": 12.2366228, "lng": 109.1930314, "pid": "ChIJ-aq6LbdncDERaqiLFZBjbBw", "addr": "34/2/15 Nguyễn Thiện Thuật, Nha Trang", "h": "10:00~23:00", "tel": "+84938399495", "why": "접시가 작고 가격이 메뉴판에 적혀 있어서 여러 가지를 시켜 놓고 맥주 마시기 좋습니다. 호텔에서 걸어갈 수 있는 해산물집입니다.", "m": [["Gỏi cá mai", "고이까마이. 생선회 무침을 라이스페이퍼에 싸 먹는 나트랑 음식"], ["Ốc hương rang muối ớt", "고둥 소금볶음. 매콤한 맥주 안주"], ["Sò điệp nướng mỡ hành", "가리비 구이"], ["Nghêu hấp sả", "조개찜. 국물이 시원합니다"], ["Cơm chiên", "볶음밥"]], "note": "소라 알이 작다는 후기가 있습니다. 양보다 가짓수로 시키세요. 8명이면 12~15접시 정도.", "grp": "골목 안쪽이라 8명이면 5시 반쯤 일찍 가세요.", "big": 0, "top": 1, "must": 0, "hist": [2596, 581, 274, 96, 164]}, {"id": "tyro", "n": "Tyro Seafood", "sub": "수조에서 골라 먹는 해산물집", "cat": "seafood", "r": 4.5, "rc": 1586, "lat": 12.2134181, "lng": 109.20941, "pid": "ChIJF6AtWVhncDERXlQdSVSpSo4", "addr": "5A Tô Hiệu, Vĩnh Nguyên, Nha Trang", "h": "09:00~23:00", "tel": "+84905401236", "why": "현지 매체 추천 목록에 있는 집입니다. Thanh Sương에서 차로 2분이라, 거기가 만석일 때 바로 옮기기 좋습니다.", "m": [["Tôm sốt bơ tỏi", "갈릭버터 새우"], ["Cua rang me", "게 타마린드 볶음. 새콤달콤합니다"], ["Mực chiên giòn", "오징어 튀김"]], "note": "저녁 6시 반 이후엔 자리를 직접 잡아야 할 만큼 붐빕니다.", "grp": "8명 앉을 수 있습니다.", "big": 1, "top": 0, "must": 0, "hist": [1230, 146, 86, 31, 93]}, {"id": "hang66", "n": "Hải Sản Hằng 66", "sub": "강과 바다가 보이는 테라스 해산물집", "cat": "seafood", "r": 4.5, "rc": 540, "lat": 12.2644475, "lng": 109.1981954, "pid": "ChIJfRkE1OBncDERr3Yk3B6JxTw", "addr": "46 Cù Huân, Vĩnh Thọ, Nha Trang", "h": "10:30~23:30", "tel": "+84938266668", "why": "포나가르 사원이나 머드온천에 가는 날 점심으로 붙이기 좋습니다. 5층 테라스에서 전망이 보입니다. 랍스터만 빼면 1인 30~40만동 정도라는 후기가 있습니다.", "m": [["Tôm sú bơ tỏi", "갈릭버터 새우"], ["Cua rang muối", "소금 볶음 게. 후기에서 가장 평이 좋습니다"], ["Mực chiên giòn", "오징어 튀김"], ["Cá hấp cuốn bánh tráng", "생선찜 쌈. 직원이 말아 줍니다"]], "note": "현금만 받는다는 후기가 있습니다. 영어가 잘 안 통해서 번역기가 필요합니다.", "grp": "테라스 자리가 넓습니다.", "big": 1, "top": 0, "must": 0, "hist": [407, 62, 29, 8, 34]}, {"id": "nhatoi", "n": "Hải Sản Nhà Tôi", "sub": "동네 사람들이 가는 허름한 해산물집", "cat": "seafood", "r": 4.4, "rc": 340, "lat": 12.2548769, "lng": 109.1951603, "pid": "ChIJcwZIjAlncDER7GdN3JDIu34", "addr": "24 Ngô Quyền, Xương Huân, Nha Trang", "h": "10:30~22:30", "tel": "+84983589092", "why": "관광객 식당에 질려서 찾았다는 후기가 많은 집입니다. 가격이 현지인 기준이고 덤시장에서 가깝습니다.", "m": [["Mực nướng", "오징어 구이. 오징어는 꼭 먹으라는 후기가 있습니다"], ["Tôm nướng", "새우 구이"], ["Nghêu hấp sả", "조개찜"]], "note": "소프트쉘 크랩은 별로라는 후기가 있습니다. 가게가 깔끔하지는 않습니다.", "grp": "작은 집이라 8명은 가기 전에 전화로 확인하세요.", "big": 0, "top": 0, "must": 0, "hist": [254, 39, 14, 7, 26]}, {"id": "thanhhien", "n": "Quán Hải Sản Thanh Hiền", "sub": "북쪽 해안도로의 로컬 해산물집", "cat": "seafood", "r": 4.4, "rc": 479, "lat": 12.2654936, "lng": 109.2006475, "pid": "ChIJ-5HalXtocDERzUn3v9dVV4M", "addr": "9KA Phạm Văn Đồng, Vĩnh Hải, Nha Trang", "h": "08:00~23:30", "tel": "+84905779262", "why": "1층에서 해산물을 고르고 2층에서 바다를 보며 먹습니다. 북쪽 일정이 있는 날에만 갈 만한 위치입니다.", "m": [["Cơm chiên hải sản", "해산물 볶음밥. 바삭하게 볶아서 평이 좋습니다"], ["Tôm hấp", "새우찜"], ["Ghẹ hấp", "꽃게찜"]], "note": "", "grp": "2층이 넓습니다.", "big": 1, "top": 0, "must": 0, "hist": [312, 113, 25, 8, 21]}, {"id": "kimanh", "n": "Kim Anh Quán Ốc", "sub": "현지인이 줄 서는 길거리 소라집", "cat": "seafood", "r": 4.4, "rc": 483, "lat": 12.2116336, "lng": 109.2126892, "pid": "ChIJ43PTDKBncDERlC1qB_u9F9Q", "addr": "96 Trần Phú, Vĩnh Nguyên, Nha Trang", "h": "12:30~20:00", "tel": "+84762979686", "why": "나트랑 사람들 단골집으로 현지 글에 나오는 곳입니다. 주문은 종이에 직접 적어서 냅니다.", "m": [["Ốc hương rang muối", "고둥 소금볶음"], ["Sò điệp nướng mỡ hành", "가리비 구이"], ["Sò huyết rang me", "피조개 타마린드 볶음"]], "note": "재료가 떨어지면 일찍 닫습니다. 1시간 가까이 기다렸다는 후기와 비싸다는 후기도 있습니다.", "grp": "길가 낮은 의자라 8명은 나눠 앉아야 합니다.", "big": 0, "top": 0, "must": 0, "hist": [326, 92, 24, 17, 24]}, {"id": "vandon", "n": "Quán Hẻm Ốc Vân Đồn", "sub": "현지인 골목 해산물집", "cat": "seafood", "r": 4.2, "rc": 1575, "lat": 12.2346932, "lng": 109.1821407, "pid": "ChIJp1PoeohdcDERjf8iqkps9y4", "addr": "89 Vân Đồn, Phước Hòa, Nha Trang", "h": "14:00~23:00", "tel": "+84787927777", "why": "일주일에 세 번 갔는데 현지인만 봤다는 후기가 있습니다. 영어 메뉴판에 인기 메뉴 표시가 있어 고르기 쉽습니다.", "m": [["Tôm nướng", "새우 구이"], ["Ghẹ rang me", "꽃게 타마린드 볶음"], ["Canh nghêu", "조개탕"], ["Mì xào hải sản", "해산물 볶음면"]], "note": "낮은 별점이 10%로 다른 집보다 많고, 먹고 탈이 났다는 후기가 한 건 있습니다. 다른 집이 안 될 때 가세요.", "grp": "8명 앉을 수 있습니다.", "big": 1, "top": 0, "must": 0, "hist": [979, 280, 152, 54, 110]}, {"id": "bencang", "n": "Hải Sản Bến Cảng", "sub": "에어컨 룸이 있는 항구 쪽 해산물집", "cat": "seafood", "r": 4.3, "rc": 1465, "lat": 12.2028583, "lng": 109.1822589, "pid": "ChIJ12kdEVVncDERdo3REBpyGUE", "addr": "Lô 5 Nguyễn Tất Thành, Hòn Rớ, Nha Trang", "h": "10:00~23:00", "tel": "+84707232723", "why": "시내에서 멀지만 에어컨 룸이 있어서 더운 날 단체로 가기 편합니다. 랍스터는 직원이 손질해 줍니다.", "m": [["Tôm hùm", "랍스터. kg당 가격을 먼저 확인하세요"], ["Nhum nướng mỡ hành", "성게 구이"], ["Cá nướng", "생선 구이"]], "note": "멀어서 왕복 그랩비가 꽤 나옵니다.", "grp": "에어컨 단체룸이 있어 8명이 가장 편합니다.", "big": 1, "top": 0, "must": 0, "hist": [916, 292, 119, 41, 97]}, {"id": "namsanh", "n": "Quán Bò Tơ Năm Sánh", "sub": "송아지 고기 전문 대형 식당", "cat": "meat", "r": 4.5, "rc": 1191, "lat": 12.2547188, "lng": 109.1634651, "pid": "ChIJF3rkrwxdcDERdNHxkjmnWqw", "addr": "Tây Nha Trang", "h": "08:00~22:00", "tel": "+84772721901", "why": "메뉴가 전부 소고기인 현지인 단체 식당입니다. 늘 붐비는 데는 이유가 있다는 후기가 있고, 남자 8명이 고기에 맥주 마시기에 가장 잘 맞습니다.", "m": [["Bò tơ nướng", "송아지 고기 구이"], ["Bò tơ hấp", "송아지 수육. 라이스페이퍼에 싸 먹습니다"], ["Bò tái chanh", "소고기 레몬 무침"], ["Lẩu bò", "소고기 전골"]], "note": "영어가 거의 안 통합니다. 메뉴 이름을 크게 띄워서 보여 주세요. 붐빌 땐 음식이 늦게 나옵니다.", "grp": "야외 대형 홀이라 8명에게 가장 좋습니다.", "big": 1, "top": 1, "must": 0, "hist": [844, 190, 92, 31, 34]}, {"id": "lauga", "n": "Lẩu Gà Lá É", "sub": "향긋한 닭 전골", "cat": "meat", "r": 4.5, "rc": 705, "lat": 12.2369704, "lng": 109.1838015, "pid": "ChIJnQOePYZdcDERgOPry5NeoAg", "addr": "19 Hồng Lĩnh, Phước Hòa, Nha Trang", "h": "09:00~23:00", "tel": "+84935328606", "why": "바질 비슷한 향채를 넣고 끓이는 달랏식 닭 전골입니다. 2인 냄비가 18만동으로 쌉니다.", "m": [["Lẩu gà lá é", "닭 전골. 8명이면 큰 냄비 2개"], ["Thêm gà", "닭고기 추가"], ["Mì gói", "라면 사리"]], "note": "1점이 10%로 호불호가 갈립니다. 토종닭이라 질기고, 가게가 깔끔하지 않다는 후기가 있습니다.", "grp": "8명 앉을 수 있습니다.", "big": 1, "top": 0, "must": 0, "hist": [575, 36, 18, 5, 71]}, {"id": "hunghoa", "n": "Nem Nướng Hưng Hòa", "sub": "호텔 앞 넴느엉 가족 식당", "cat": "nem", "r": 4.5, "rc": 656, "lat": 12.2394466, "lng": 109.1946447, "pid": "ChIJ_eGR67JncDERPBkODsuZ_bw", "addr": "46/21 Hùng Vương, Nha Trang", "h": "08:00~22:30", "tel": "+84948517868", "why": "넴느엉은 구운 돼지고기 완자를 채소와 함께 라이스페이퍼에 싸서 땅콩 소스에 찍어 먹는 나트랑 대표 음식입니다. 4.9점짜리 유명 넴느엉집들은 5점 쏠림이 심해서 뺐고, 별점 분포가 자연스러운 이 집을 골랐습니다.", "m": [["Nem nướng", "넴느엉. 1인분 약 5.8만동, 8명이면 8~10인분"], ["Bánh xèo", "반쎄오"]], "note": "테이블이 몇 개 없는 작은 집입니다. 야시장 끝 맞은편 골목 안에 있습니다.", "grp": "8명이 한 번에 못 앉을 수 있습니다. 이른 시간에 가세요.", "big": 0, "top": 1, "must": 0, "hist": [462, 110, 38, 17, 29]}, {"id": "dvq", "n": "Nem Nướng Đặng Văn Quyên", "sub": "넴느엉 원조집, 4층 건물", "cat": "nem", "r": 4.1, "rc": 6038, "lat": 12.2537197, "lng": 109.1938289, "pid": "ChIJrYhLgoZncDER6fpXnhTtHH8", "addr": "16A Lãn Ông, Xương Huân, Nha Trang", "h": "07:30~20:30", "tel": "+842583826737", "why": "평점은 4.1로 평범하지만 리뷰 6천 개의 분포가 자연스러운, 실제로 유명한 집입니다. 에어컨이 있고 4층까지 있어서 8명 자리가 확실합니다. 맛은 골목집이 더 낫다는 평도 있습니다.", "m": [["Nem nướng", "넴느엉. 6개에 5.8만동"], ["Chả ram", "짜람. 바삭한 튀김 롤"], ["Bò nướng", "소고기 구이"], ["Cơm sườn", "돼지갈비 덮밥"]], "note": "저녁 8시 반에 닫습니다. 점심에 가세요.", "grp": "단체 자리가 확실합니다.", "big": 1, "top": 0, "must": 0, "hist": [3031, 1641, 829, 203, 334]}, {"id": "hanhnhien", "n": "Bún Cá Hạnh Nhiên", "sub": "맑은 생선 국수, 해장 1순위", "cat": "noodle", "r": 4.6, "rc": 1376, "lat": 12.2407712, "lng": 109.1875853, "pid": "ChIJ2aNcK3xncDERRRKwkQbb0vQ", "addr": "32C Lê Đại Hành, Nha Trang", "h": "05:30~13:00 / 16:30~20:30", "tel": "+84905126367", "why": "분까는 맑은 생선 육수에 어묵을 올린 나트랑식 쌀국수입니다. 국물이 담백해서 전날 술 마신 아침에 좋습니다.", "m": [["Bún cá sứa", "분까에 해파리를 올린 것"], ["Bún chả cá", "해파리 없이 어묵만"]], "note": "오후 1시부터 4시 반까지는 쉽니다.", "grp": "회전이 빨라 8명도 금방 앉습니다.", "big": 1, "top": 1, "must": 0, "hist": [1009, 234, 66, 15, 52]}, {"id": "haica", "n": "Hai Cá", "sub": "어묵 올린 굵은 쌀국수", "cat": "noodle", "r": 4.4, "rc": 3170, "lat": 12.2375203, "lng": 109.1891731, "pid": "ChIJa4Tra31ncDERS82XykcR0mk", "addr": "156 Nguyễn Thị Minh Khai, Nha Trang", "h": "06:00~21:00", "tel": "+84976477172", "why": "한국에서 팔면 해장국으로 좋겠다는 한국인 후기가 있습니다. 그릇이 크고 푸짐합니다.", "m": [["Bánh canh chả cá", "반깐. 어묵을 올린 굵은 쌀국수"], ["Mực chiên", "오징어 튀김"]], "note": "테이블의 칠리소스가 짭니다. 조금씩 넣으세요.", "grp": "넓어서 8명 앉을 수 있습니다.", "big": 1, "top": 0, "must": 0, "hist": [2036, 690, 268, 70, 106]}, {"id": "coba", "n": "Bún Cá Cô Ba", "sub": "현지인이 가는 생선 국수집", "cat": "noodle", "r": 4.4, "rc": 645, "lat": 12.2460434, "lng": 109.1940508, "pid": "ChIJmaXcI39dcDERtfmoQpY7fzE", "addr": "105 Hoàng Hoa Thám, Nha Trang", "h": "06:00~19:30", "tel": "+84905277953", "why": "관광객 입맛에 맞추지 않은 집이라는 후기가 있습니다. 한 그릇 4~5만동입니다.", "m": [["Bún cá đặc biệt", "분까 스페셜. 생선살, 어묵, 해파리가 다 들어갑니다"]], "note": "점심과 저녁 시간엔 현지인으로 붐빕니다.", "grp": "테이블이 많습니다.", "big": 1, "top": 0, "must": 0, "hist": [414, 148, 53, 9, 21]}, {"id": "pho", "n": "Phở Bò Hà Nội", "sub": "동네 소고기 쌀국수집", "cat": "noodle", "r": 4.5, "rc": 782, "lat": 12.2405286, "lng": 109.1914031, "pid": "ChIJ84I8LHxncDER8UMRKZK_WkQ", "addr": "81 Bạch Đằng, Nha Trang", "h": "06:00~21:00", "tel": "+84968501599", "why": "한글 간판을 단 유명 쌀국수집들은 5점 쏠림이 심해서 뺐고, 대신 고른 동네 집입니다.", "m": [["Phở tái", "살짝 익힌 소고기 쌀국수"], ["Phở tái lăn", "볶은 소고기를 올린 쌀국수"], ["Bún chả", "분짜"]], "note": "허브와 라임은 달라고 해야 줄 때가 있습니다.", "grp": "문 없이 트인 가게입니다. 8명 앉을 수 있습니다.", "big": 1, "top": 1, "must": 0, "hist": [547, 137, 60, 16, 22]}, {"id": "bunthitnuong", "n": "Quán Bún Thịt Nướng", "sub": "20년 된 숯불고기 비빔국수집", "cat": "noodle", "r": 4.4, "rc": 347, "lat": 12.2505385, "lng": 109.1874692, "pid": "ChIJ4aYPJH5dcDERcbXaTU9qQsU", "addr": "163 Hoàng Văn Thụ, Nha Trang", "h": "14:30~22:00", "tel": "+842583827038", "why": "20년 넘게 한 자리에서 장사했고 현지인 대부분이 여기로 온다는 후기가 있습니다. 낮은 별점이 거의 없습니다.", "m": [["Bún thịt nướng", "분팃느엉. 숯불 돼지고기 비빔 쌀국수"], ["Bánh hỏi thịt nướng", "숯불 돼지고기와 얇은 쌀국수 쌈"]], "note": "오후 2시 반에 엽니다.", "grp": "8명 앉을 수 있습니다.", "big": 1, "top": 0, "must": 0, "hist": [203, 99, 33, 6, 6]}, {"id": "cophuoc", "n": "Bún Thịt Nướng Cô Phước", "sub": "아주머니가 하는 숯불고기 국수집", "cat": "noodle", "r": 4.7, "rc": 205, "lat": 12.2562968, "lng": 109.1925318, "pid": "ChIJtccUrbdncDERZzCrvR0rI3A", "addr": "24B Đoàn Thị Điểm, Nha Trang", "h": "11:30~18:00 (일 휴무)", "tel": "+84775243579", "why": "덤시장 근처의 허름한 집입니다. 5점 비율이 83%로 기준선에 가깝지만 후기 내용이 구체적이라 넣었습니다.", "m": [["Bún thịt nướng nem", "숯불 돼지고기와 넴을 올린 비빔국수"]], "note": "일요일은 쉬고, 저녁 장사는 하지 않습니다.", "grp": "작은 집입니다.", "big": 0, "top": 0, "must": 0, "hist": [171, 18, 6, 4, 6]}, {"id": "cothu", "n": "Bánh Canh Cô Thu", "sub": "주택가의 어묵 국수집", "cat": "noodle", "r": 4.6, "rc": 87, "lat": 12.2454451, "lng": 109.1804465, "pid": "ChIJSUEbpoBdcDERWHRcJICGfyI", "addr": "20 Đồng Nai, Phước Hải, Nha Trang", "h": "06:00~19:00", "tel": "+84938716369", "why": "현지 블로그에서 추천하는 집입니다. 리뷰는 87개로 적지만 낮은 별점이 거의 없습니다.", "m": [["Bánh canh chả cá", "반깐. 생선알과 내장도 함께 올라갑니다"]], "note": "일부러 찾아갈 정도는 아니고, 근처에 있을 때 가세요.", "grp": "작은 집입니다.", "big": 0, "top": 0, "must": 0, "hist": [54, 28, 4, 1, 0]}, {"id": "comtamson", "n": "Quán Cơm Tấm Sơn", "sub": "숯불 돼지갈비 덮밥", "cat": "rice", "r": 4.4, "rc": 460, "lat": 12.2534374, "lng": 109.1903439, "pid": "ChIJReBNGIdncDERAn3Aj2oKjuU", "addr": "9 Phạm Hồng Thái, Nha Trang", "h": "06:00~13:00 / 16:00~20:00", "tel": "+842583561802", "why": "현지인이 줄 서서 먹고 포장해 가는 집입니다. 숯불에 구운 돼지갈비에 반숙 계란을 올려 줍니다.", "m": [["Cơm tấm sườn trứng", "돼지갈비 덮밥에 계란프라이"], ["Cơm tấm sườn bì chả", "갈비 덮밥 모둠"]], "note": "일찍 가지 않으면 줄을 섭니다. 오후 1시부터 4시까지는 쉽니다.", "grp": "회전이 빠릅니다.", "big": 0, "top": 0, "must": 0, "hist": [290, 111, 43, 7, 9]}, {"id": "combatoi", "n": "Tiệm Cơm Bà Tôi", "sub": "에어컨 있는 베트남 가정식", "cat": "rice", "r": 4.4, "rc": 1577, "lat": 12.2393631, "lng": 109.1917443, "pid": "ChIJwYQPm0FncDERT_VetGtfFcI", "addr": "68/4 Đống Đa, Nha Trang", "h": "10:00~14:00 / 17:00~21:00", "tel": "+842583515118", "why": "반찬을 골라 한 상으로 먹는 가정식 집입니다. 외국인 손님도 많아 완전한 로컬은 아니지만 시원하고 편합니다. 1인 15~25만동 정도입니다.", "m": [["Cơm phần gia đình", "가정식 한 상. 인원수에 맞춰 반찬을 고릅니다"], ["Canh chua", "새콤한 생선국"], ["Cá kho tộ", "생선 조림"]], "note": "오후 2시부터 5시까지는 쉽니다. 토란국은 고수 향이 강합니다.", "grp": "넓고 에어컨이 있어 8명이 편합니다.", "big": 1, "top": 0, "must": 0, "hist": [1127, 218, 96, 46, 90]}, {"id": "banhmiphan", "n": "Bánh Mì Phan", "sub": "줄 서서 사는 반미", "cat": "snack", "r": 4.5, "rc": 4242, "lat": 12.2398487, "lng": 109.1928906, "pid": "ChIJUS2RKKdncDERX-2xeRMHUZ8", "addr": "164 Bạch Đằng, Nha Trang", "h": "07:00~21:30", "tel": "+84372776778", "why": "4.9점짜리 반미집들은 5점 쏠림이 심해서 뺐고, 리뷰 4천 개의 분포가 자연스러운 이 집을 골랐습니다.", "m": [["Bánh mì thập cẩm", "모둠 반미"], ["Bánh mì bò phô mai", "소고기 치즈 반미"], ["Bánh mì tôm phô mai", "새우 치즈 반미"]], "note": "현금만 받습니다. 20~30분 기다렸다는 후기가 있으니 한 명이 가서 8개를 한꺼번에 주문하세요.", "grp": "포장해서 먹는 걸 추천합니다.", "big": 0, "top": 1, "must": 0, "hist": [3029, 666, 313, 87, 147]}, {"id": "banhxeo", "n": "Bánh Xèo Cô Xuyên", "sub": "저녁마다 현지인으로 차는 반쎄오집", "cat": "snack", "r": 4.6, "rc": 192, "lat": 12.2403241, "lng": 109.1880396, "pid": "ChIJS2wIfdtncDERcwQvRU_og3c", "addr": "36 Lê Đại Hành, Nha Trang", "h": "14:00~21:00", "tel": "+84934733648", "why": "바삭하게 부치는 스타일의 반쎄오집입니다. 간식이나 2차 안주로 좋습니다.", "m": [["Bánh xèo tôm mực", "새우와 오징어가 들어간 반쎄오"], ["Sữa đậu nành", "두유"]], "note": "오후 2시쯤 엽니다.", "grp": "작은 집이라 8명은 나눠 앉아야 합니다.", "big": 0, "top": 0, "must": 0, "hist": [148, 24, 9, 2, 9]}, {"id": "goicamai", "n": "Gỏi Cá Mai Cô Hằng", "sub": "생선회 무침 쌈 전문", "cat": "snack", "r": 4.4, "rc": 128, "lat": 12.2655672, "lng": 109.1983526, "pid": "ChIJtWhA6LBncDER-5mYIpwtL1g", "addr": "54 Tháp Bà, Vĩnh Thọ, Nha Trang", "h": "10:30~20:00", "tel": "", "why": "고이까마이는 라임에 절인 작은 생선을 채소와 함께 라이스페이퍼에 싸 먹는 나트랑 향토 음식입니다. 포나가르 사원 바로 근처입니다.", "m": [["Gỏi cá mai", "고이까마이. 맥주 안주로 좋습니다"]], "note": "길거리 음식 수준의 작은 가게입니다. 날생선이 걱정되면 Ốc Ngon에서 한 접시만 맛보세요.", "grp": "작은 집입니다.", "big": 0, "top": 0, "must": 0, "hist": [94, 15, 8, 4, 7]}, {"id": "biahoi", "n": "Bia Hơi Hà Nội", "sub": "24시간 여는 현지 생맥줏집", "cat": "beer", "r": 4.6, "rc": 85, "lat": 12.2326922, "lng": 109.1799271, "pid": "ChIJwc1JERddcDERny4UMn9eqto", "addr": "Thích Quảng Đức, Hà Quang 2, Nha Trang", "h": "24시간", "tel": "+84902192868", "why": "외국인이 한 명도 없었다는 후기가 있는 생맥줏집입니다. 24시간 열어서 도착한 첫날 밤에도 갈 수 있습니다.", "m": [["Bia hơi", "생맥주"], ["Đậu phụ chiên", "두부 튀김"], ["Nem chua rán", "넴쭈아 튀김. 돼지고기 소시지 튀김"]], "note": "리뷰가 85개로 적습니다. 메뉴판은 구글 번역 카메라로 보세요.", "grp": "넓은 야외 홀이라 8명에게 좋습니다.", "big": 1, "top": 1, "must": 0, "hist": [60, 19, 3, 1, 2]}, {"id": "jelly", "n": "Jelly Brew Pub", "sub": "호텔 앞 골목의 수제맥주 펍", "cat": "beer", "r": 4.6, "rc": 439, "lat": 12.2395658, "lng": 109.19439, "pid": "ChIJJYphAvZncDER7oeoNcOXyos", "addr": "46.4 Hùng Vương, Nha Trang", "h": "15:00~24:00", "tel": "", "why": "직접 만든 맥주를 탭으로 팝니다. 넴느엉집 Hưng Hòa와 같은 골목이라 1차 뒤에 걸어서 1분입니다.", "m": [["Beer flight", "맥주 4종 샘플러"]], "note": "작은 골목 펍이라 시끄러울 수 있습니다.", "grp": "8명이면 자리가 나뉠 수 있습니다.", "big": 0, "top": 0, "must": 0, "hist": [339, 63, 15, 10, 12]}, {"id": "louisiane", "n": "Louisiane Brewhouse", "sub": "해변에 있는 양조장, 저녁 라이브", "cat": "beer", "r": 4.3, "rc": 4692, "lat": 12.2310188, "lng": 109.1988028, "pid": "ChIJxcswvkZncDERQl0fDKfK6EY", "addr": "Lô 29 Trần Phú, Nha Trang", "h": "07:00~24:00", "tel": "+842583521948", "why": "관광객도 많지만 별점 분포가 자연스러운 해변 양조장입니다. 3L, 5L 타워 맥주가 있고 저녁엔 밴드 공연을 합니다. Mai Hương에서 걸어서 6분입니다.", "m": [["Bia tươi 3L", "하우스 생맥주 3리터 타워"], ["Bia tươi 5L", "하우스 생맥주 5리터 타워"]], "note": "안주로 나오는 양식은 평범하다는 후기가 많습니다. 맥주만 드세요.", "grp": "자리가 많아 8명에게 좋습니다.", "big": 1, "top": 1, "must": 0, "hist": [2732, 1191, 375, 137, 257]}, {"id": "vfruit", "n": "Kem Bơ Vfruit", "sub": "아보카도 아이스크림", "cat": "dessert", "r": 4.5, "rc": 3044, "lat": 12.2392123, "lng": 109.1921483, "pid": "ChIJ3UtlQXxncDERvWZuM7_VRwg", "addr": "24 Tô Hiến Thành, Nha Trang", "h": "10:00~23:00", "tel": "+84905068910", "why": "아보카도를 갈아 아이스크림을 올린 나트랑 디저트입니다. 호텔에서 걸어서 6분입니다.", "m": [["Kem bơ", "아보카도 아이스크림"], ["Kem bơ sầu riêng", "두리안을 추가한 것. 5만동"], ["Kem bơ dừa", "코코넛을 추가한 것"]], "note": "", "grp": "포장도 됩니다.", "big": 0, "top": 0, "must": 0, "hist": [2024, 696, 218, 50, 56]}];
+const PLAN=[{"d": "11/19", "w": "목", "title": "도착", "items": [["21:25", "깜라인 공항 도착", "그랩 2대로 시내까지 약 45분", []], ["23:00", "호텔 체크인", "", []], ["23:20", "늦은 저녁 겸 한잔", "피곤하면 호텔 앞 펍으로", ["biahoi", "jelly"]]]}, {"d": "11/20", "w": "금", "title": "호핑투어", "items": [["07:00", "출발 전 반미 포장", "", ["banhmiphan"]], ["18:30", "저녁", "호핑 뒤라 손질해 주는 편한 집으로", ["maihuong"]], ["20:30", "해변에서 맥주", "", ["louisiane"]]]}, {"d": "11/21", "w": "토", "title": "북쪽 구경과 고기", "items": [["08:30", "해장", "", ["hanhnhien"]], ["10:30", "포나가르 사원, 머드온천", "원하는 사람만", []], ["12:30", "점심", "가볍게 먹으려면 고이까마이", ["hang66", "goicamai"]], ["15:00", "호텔에서 쉬고 디저트", "", ["vfruit"]], ["18:00", "저녁", "이번 여행의 고기 메인", ["namsanh"]], ["20:30", "2차", "", ["biahoi", "jelly"]]]}, {"d": "11/22", "w": "일", "title": "시내 로컬과 해산물", "items": [["08:30", "아침", "", ["pho"]], ["12:00", "점심 넴느엉", "식사 뒤 덤시장 구경", ["dvq", "hunghoa"]], ["15:00", "간식", "", ["banhxeo"]], ["17:30", "저녁", "6시 전에 도착. 만석이면 Tyro로", ["thanhsuong", "tyro"]], ["21:00", "2차", "", ["jelly"]]]}, {"d": "11/23", "w": "월", "title": "출국", "items": [["08:30", "아침", "", ["haica"]], ["11:30", "체크아웃", "짐은 호텔에 맡기기", []], ["12:00", "점심", "시원한 곳에서 가정식", ["combatoi"]], ["14:30", "마사지", "8명은 전날 예약", []], ["17:30", "마지막 저녁", "", ["ocngon"]], ["20:00", "공항으로 출발", "23:05 비행기", []]]}];
+const CAT={seafood:{e:"🦐",n:"해산물"},meat:{e:"🥩",n:"고기·전골"},nem:{e:"🌯",n:"넴느엉"},noodle:{e:"🍜",n:"국수·해장"},rice:{e:"🍚",n:"밥"},snack:{e:"🥖",n:"반미·간식"},beer:{e:"🍺",n:"술"},dessert:{e:"🍨",n:"디저트"}};
+const Z=[{n:"호텔",lat:12.2409557,lng:109.1962023,hint:"하얏트 리젠시"},{n:"야시장·여행자거리",lat:12.2375,lng:109.1945},{n:"덤시장",lat:12.2553,lng:109.1920},{n:"포나가르·머드온천",lat:12.2654,lng:109.1955},{n:"남쪽 항구·빈펄 선착장",lat:12.2125,lng:109.2120}];
+const PH=[["Cho bàn 8 người","8명 자리 주세요"],["Cho tôi xem thực đơn có giá","가격이 적힌 메뉴판 보여 주세요"],["Bao nhiêu tiền một ký?","1kg에 얼마예요?"],["Cân cho tôi xem nhé","저울에 달아서 보여 주세요"],["Không cay","안 맵게 해 주세요"],["Không bỏ rau mùi","고수는 빼 주세요"],["Cho 8 chai bia lạnh","시원한 맥주 8병 주세요"],["Cho thêm đá","얼음 더 주세요"],["Không cần khăn lạnh","물티슈는 필요 없어요"],["Tính tiền","계산해 주세요"],["Chia hai hóa đơn được không?","계산서를 둘로 나눠 주실 수 있나요?"],["Cho tôi xuống ở đây","여기서 내려 주세요"]];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
-function km(a,b){const R=6371,r=Math.PI/180,dl=(b.lat-a.lat)*r,dg=(b.lng-a.lng)*r;const h=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
-function mv(d){
-  const s=km(org,d),road=Math.max(.15,s*1.35);
-  const walk=Math.round(road*13),drive=Math.round(3+road*2.6);
-  const over=Math.max(0,road-2);
-  const f4=27000+over*12960+over*2.6*550;
-  const two=Math.round(f4*2/1000)*1000;
-  const won=Math.round(two*0.055/100)*100;
-  return {s,walk,drive,f4:Math.round(f4/1000)*1000,two,won};
-}
-const PH=[["Cho bàn 8 người","8명 자리 주세요"],["Cho tôi xem thực đơn có giá","가격 적힌 메뉴판 보여 주세요"],["Bao nhiêu tiền một ký?","1kg에 얼마예요?"],["Cân giúp tôi xem","저울에 달아서 보여 주세요"],["Không cay","안 맵게"],["Không rau mùi (ngò)","고수 빼 주세요"],["Cho 8 chai bia lạnh","시원한 맥주 8병"],["Thêm đá","얼음 더 주세요"],["Không cần khăn lạnh","물티슈 필요 없어요 (치워 주세요)"],["Tính tiền","계산해 주세요"],["Chia hai hóa đơn được không?","계산서 둘로 나눠 주실 수 있나요?"],["Cho tôi xuống ở đây","여기서 내려 주세요 (그랩)"]];
-function vnNow(){const n=new Date(Date.now()+7*3600e3);return {min:n.getUTCHours()*60+n.getUTCMinutes(),day:n.getUTCDay(),hh:String(n.getUTCHours()).padStart(2,"0"),mm:String(n.getUTCMinutes()).padStart(2,"0")};}
-function openState(d){
-  const v=vnNow();
-  if(/24시간/.test(d.h))return {open:true,txt:"영업 중 · 24시간"};
-  if(/일 휴무/.test(d.h)&&v.day===0)return {open:false,txt:"오늘(일) 휴무"};
-  const rs=[...d.h.matchAll(/(\d{2}):(\d{2})~(\d{2}):(\d{2})/g)].map(m=>[+m[1]*60+ +m[2],(+m[3]*60+ +m[4])||1440]);
-  for(const [a,b] of rs){if(v.min>=a&&v.min<b)return {open:true,txt:"영업 중 · "+(b>=1440?"24:00":String(Math.floor(b/60)).padStart(2,"0")+":"+String(b%60).padStart(2,"0"))+"까지"};}
-  const nx=rs.find(r=>r[0]>v.min)||rs[0];
-  return {open:false,txt:"준비 중 · "+String(Math.floor(nx[0]/60)).padStart(2,"0")+":"+String(nx[0]%60).padStart(2,"0")+" 오픈"};
-}
-let seen={};try{seen=JSON.parse(localStorage.getItem("nt_seen")||"{}")}catch(e){}
-let onlyopen=false,qty=1,showCtx=null;
-function showBig(vi,ko,withQty){showCtx={vi,ko,withQty};qty=withQty?1:0;renderShow();$("show").classList.add("on");}
-function renderShow(){const c=showCtx;$("showvi").textContent=c.vi;$("showko").textContent=c.ko;$("showqty").style.display=c.withQty?"flex":"none";$("qn").textContent=qty;$("showq").textContent=c.withQty?("× "+qty+" phần ("+qty+"인분)"):"";}
-const man=v=>(v/10000).toFixed(1).replace(/\.0$/,"")+"만동";
-function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),2600);}
-const clean=a=>a.replace(/\s*\([^)]*[가-힣][^)]*\)/g,"").replace(/\s*—.*$/,"").trim();
-function grabUrl(d){
-  const dp="grab://open?screenType=BOOKING&dropOffLatitude="+d.lat+"&dropOffLongitude="+d.lng+"&dropOffAddress="+encodeURIComponent(d.n+", "+clean(d.addr));
-  return "https://grab.onelink.me/2695613898?pid=website&af_force_deeplink=true&af_dp="+encodeURIComponent(dp);
-}
-function fillOrg(){
-  $("zones").innerHTML=Z.map((z,i)=>`<button type="button" data-z="${i}" class="${org===z?"on":""}">${esc(z.n)}</button>`).join("")+(Z.includes(org)||org.gps?"":`<button type="button" class="on">${esc(org.n)}</button>`);
-  $("zones").insertAdjacentHTML("afterbegin",`<button type="button" id="gps" class="${org.gps?"on":""}">${org.gps?"현위치 (GPS 켜짐)":"현위치 (GPS)"}</button>`);
-  $("gpsbar").textContent=org.gps?("정확도 약 "+Math.round(org.acc||0)+"m · 위치는 이 폰 안에서만 계산에 쓰입니다"):"현위치 (GPS)를 누르면 지금 있는 곳 기준으로 계산됩니다";
-}
-const openSet=new Set();
-function goCard(i){
-  document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab==="list"));
-  ["list","plan","tips"].forEach(id=>$(id).hidden=id!=="list");
-  cur="전체";onlyopen=false;$("onlyopen").checked=false;openSet.add(i);draw();
-  const el=$("c"+i);if(el){const y=el.getBoundingClientRect().top+window.scrollY-64;window.scrollTo({top:y,behavior:"smooth"});}
-}
-function drawNow(){
-  const v=vnNow(),h=v.min/60;
-  let lab,cs;
-  if(h>=5&&h<10){lab="아침·해장";cs=["로컬 한 끼"];}
-  else if(h>=10&&h<14){lab="점심";cs=["로컬 한 끼","해산물","고기·전골"];}
-  else if(h>=14&&h<17){lab="간식·카페 타임";cs=["디저트","로컬 한 끼"];}
-  else if(h>=17&&h<21){lab="저녁";cs=["해산물","고기·전골"];}
-  else{lab="2차·야식";cs=["술","해산물"];}
-  const c=D.map((d,i)=>({d,i,m:mv(d),o:openState(d)})).filter(x=>x.o.open&&cs.includes(x.d.c)&&!seen[x.d.pid]&&x.d!==org)
-    .sort((a,b)=>(b.d.top-a.d.top)*0.8+(a.m.s-b.m.s)).slice(0,3);
-  $("now").innerHTML=`<h2>지금(나트랑 ${v.hh}:${v.mm}) ${lab} 추천 · ${esc(org.n)} 기준</h2>`+(c.length?c.map(({d,i,m})=>`<div class="r"><button type="button" class="nm" data-go="${i}"><b>${esc(d.n)}</b><span>${esc(d.kr)} · ${m.s<1?Math.round(m.s*100)*10+"m":m.s.toFixed(1)+"km"} · ${m.walk<=20?"도보 "+m.walk+"분":"그랩 "+m.drive+"분"}</span></button><a class="g" href="${grabUrl(d)}">그랩</a><a class="m" href="https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}&destination_place_id=${d.pid}">길찾기</a></div>`).join(""):'<div class="r" style="color:var(--sub);font-size:13.5px">지금 여는 추천 가게가 없습니다.</div>');
-}
-function draw(){
-  $("filters").innerHTML=cats.map(c=>`<button class="${c===cur?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
-  let list=D.map((d,i)=>({d,i,m:mv(d)})).filter(x=>cur==="전체"||(cur==="TOP"?x.d.top:x.d.c===cur));
-  list.forEach(x=>x.o=openState(x.d));
-  if(onlyopen)list=list.filter(x=>x.o.open);
-  if(near)list.sort((a,b)=>a.m.s-b.m.s);
-  const v=vnNow();$("vnclock").textContent="(나트랑 "+v.hh+":"+v.mm+")";
-  if(!list.length){$("cards").innerHTML='<p style="color:var(--sub)">조건에 맞는 가게가 없습니다.</p>';return;}
-  $("cards").innerHTML=list.map(({d,i,m,o})=>{
-    const dir="https://www.google.com/maps/dir/?api=1&destination="+d.lat+","+d.lng+"&destination_place_id="+d.pid;
-    const here=org===d;
-    const mvline=here?"<b>현재 출발지로 지정된 곳</b>":
-      `<b>${esc(org.n)}에서 직선 ${m.s<1?Math.round(m.s*100)*10+"m":m.s.toFixed(1)+"km"}</b><br>`+
-      (m.walk<=25?`도보 약 ${m.walk}분 · `:"")+`그랩 약 ${m.drive}분 · 4인승 ${man(m.f4)}/대 → <b>2대 ${man(m.two)}</b> (약 ${m.won.toLocaleString()}원)`;
-    const ex=openSet.has(i);
-    return `<article class="card ${d.top?"top":""} ${seen[d.pid]?"visited":""}" id="c${i}">
-<div class="row1"><div><div class="name">${esc(d.n)}</div><div class="kr">${esc(d.kr)}</div></div>${d.st==="must"?'<span class="badge must">필수 방문</span>':d.top?'<span class="badge">TOP</span>':""}</div>
-<div class="meta"><span>구글 ${d.r} (${d.rc.toLocaleString()}명)</span><span class="${d.f5>=90?"bad":"ok"}">5점 비율 ${d.f5}%</span><span class="${o.open?"open":"closed"}">${esc(o.txt)}</span></div>
-<div class="move">${mvline}</div>
-<div class="quick">
-<a class="grab" href="${grabUrl(d)}">그랩</a>
-<a class="gm" href="${dir}">길찾기</a>
-<button type="button" data-ex="${i}" aria-expanded="${ex}">${ex?"접기":"메뉴·상세"}</button>
-</div>
-<div class="detail" ${ex?"":"hidden"}>
-<p><span class="lbl">왜</span>${esc(d.why)}</p>
-<div class="mh">이렇게 주문하세요 (누르면 직원에게 보여 줄 큰 화면)</div>
-<ul class="menu">${d.m.map((x,k)=>`<li data-m="${i}_${k}"><div><b lang="vi">${esc(x[0])}</b><span>${esc(x[1])}</span></div><i>크게</i></li>`).join("")}</ul>
-${d.tip?`<p><span class="lbl">주의</span>${esc(d.tip)}</p>`:""}
-<p><span class="lbl">8명</span>${esc(d.g)}</p>
-<p><span class="lbl">영업</span>${esc(d.h)}</p>
-<div class="addr" lang="vi">${esc(d.addr)}</div>
-<div class="btns">
-<button type="button" data-copy="${i}">주소 복사</button>
-<button type="button" data-org="${i}">여기서 출발</button>
-${d.tel?`<a href="tel:${d.tel}">전화</a>`:`<button type="button" disabled style="opacity:.4">전화 없음</button>`}
-</div>
-<label class="done"><input type="checkbox" data-seen="${d.pid}" ${seen[d.pid]?"checked":""}> 다녀옴</label>
-</div>
-</article>`}).join("");
-  drawNow();
+const byId=Object.fromEntries(D.map((d,i)=>[d.id,i]));
+const store={get(k,f){try{const v=localStorage.getItem(k);return v===null?f:JSON.parse(v)}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let org=Z[0],heading=null,range=null,sel=null,seen=store.get("nt_seen",{}),tog=store.get("nt_tog",{open:false,near:false,big:false}),planDay=null,mapObj=null,mapSel=null;
 
+/* ---------- geo & time ---------- */
+const rad=Math.PI/180;
+function km(a,b){const dl=(b.lat-a.lat)*rad,dg=(b.lng-a.lng)*rad,h=Math.sin(dl/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dg/2)**2;return 12742*Math.asin(Math.sqrt(h));}
+function brg(a,b){const y=Math.sin((b.lng-a.lng)*rad)*Math.cos(b.lat*rad),x=Math.cos(a.lat*rad)*Math.sin(b.lat*rad)-Math.sin(a.lat*rad)*Math.cos(b.lat*rad)*Math.cos((b.lng-a.lng)*rad);return (Math.atan2(y,x)/rad+360)%360;}
+function mv(d){const s=km(org,d),road=Math.max(.12,s*1.35),walk=Math.max(1,Math.round(road*13)),drive=Math.round(3+road*2.6),over=Math.max(0,road-2),f4=27000+over*12960+over*2.6*550,two=Math.round(f4*2/1000)*1000;return {s,walk,drive,two,won:Math.round(two*.055/100)*100};}
+const fd=s=>s<1?Math.max(10,Math.round(s*100)*10)+"m":(s<10?s.toFixed(1).replace(/\.0$/,""):Math.round(s))+"km";
+const how=m=>m.walk<=20?"걸어서 "+m.walk+"분":"그랩 "+m.drive+"분";
+const man=v=>(v/10000).toFixed(1).replace(/\.0$/,"")+"만동";
+function vn(){const n=new Date(Date.now()+7*3600e3);return {min:n.getUTCHours()*60+n.getUTCMinutes(),day:n.getUTCDay(),md:(n.getUTCMonth()+1)+"/"+n.getUTCDate(),hm:String(n.getUTCHours()).padStart(2,"0")+":"+String(n.getUTCMinutes()).padStart(2,"0")};}
+const hm=m=>m>=1440?"24:00":String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+function ranges(d){return [...d.h.matchAll(/(\d{2}):(\d{2})~(\d{2}):(\d{2})/g)].map(m=>[+m[1]*60+ +m[2],(+m[3]*60+ +m[4])||1440]);}
+function openState(d){const v=vn();if(/24시간/.test(d.h))return {open:true,txt:"영업 중, 24시간"};if(/일 휴무/.test(d.h)&&v.day===0)return {open:false,txt:"오늘은 쉬는 날"};const rs=ranges(d);for(const [a,b] of rs)if(v.min>=a&&v.min<b)return {open:true,txt:"영업 중, "+hm(b)+"까지"};const nx=rs.find(r=>r[0]>v.min);return {open:false,txt:nx?hm(nx[0])+"에 열어요":"오늘 영업 끝"};}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),2400);}
+const gmap=d=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(d.n+" Nha Trang")+"&query_place_id="+d.pid;
+const gdir=d=>"https://www.google.com/maps/dir/?api=1&destination="+d.lat+","+d.lng+"&destination_place_id="+d.pid;
+const grab=d=>"https://grab.onelink.me/2695613898?pid=website&af_force_deeplink=true&af_dp="+encodeURIComponent("grab://open?screenType=BOOKING&dropOffLatitude="+d.lat+"&dropOffLongitude="+d.lng+"&dropOffAddress="+encodeURIComponent(d.n+", "+d.addr));
+const orgName=()=>org.gps?"현위치":org.n;
+
+/* ---------- shared row ---------- */
+function rowHtml(d){const m=mv(d),o=openState(d);return `<li><button class="row ${seen[d.id]?"done":""}" type="button" data-go="p-${d.id}"><span class="em" aria-hidden="true">${CAT[d.cat].e}</span><span style="min-width:0"><b lang="vi">${esc(d.n)}</b><span class="sub">${esc(d.sub)}</span><span class="st"><span class="${o.open?"op":""}"><span class="dot"></span>${esc(o.txt)}</span>${d.must?'<span class="tag must">꼭 가는 곳</span>':d.top?'<span class="tag">추천</span>':""}</span></span><span class="dist num">${org===d?"여기":fd(m.s)}<small>${org===d?"":how(m)}</small></span></button></li>`;}
+function peekHtml(d){const m=mv(d),o=openState(d);return `<span class="em" aria-hidden="true">${CAT[d.cat].e}</span><span style="min-width:0"><b lang="vi">${esc(d.n)}</b><small>${esc(d.sub)}</small><small style="${o.open?"color:#0b8f62;font-weight:700":""}">${esc(o.txt)}</small></span><span class="d num">${fd(m.s)}<small>${how(m)}</small></span>`;}
+
+/* ---------- home ---------- */
+function autoRange(){const ds=D.filter(d=>d!==org).map(d=>km(org,d)).sort((a,b)=>a-b);for(const r of [.5,1,2,5])if(ds.filter(x=>x<=r).length>=6)return r;return 5;}
+function renderRadar(){
+  if(range===null)range=autoRange();
+  $("rng").innerHTML=[.5,1,2,5].map(r=>`<button type="button" data-r="${r}" aria-pressed="${r===range}">${r<1?"500m":r+"km"}</button>`).join("");
+  const hd=heading||0,items=D.filter(d=>d!==org).map(d=>({d,s:km(org,d),b:brg(org,d)})).sort((a,b)=>a.s-b.s),ins=items.filter(x=>x.s<=range),placed=[];
+  let h=`<div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="axis h"></div><div class="axis v"></div><div class="sweep"></div>`;
+  [1,2,3].forEach(k=>{h+=`<span class="lab num" style="top:${50-k*16.65}%">${fd(range*k/3)}</span>`;});
+  if(heading!==null){const a=(-hd)*rad;h+=`<span class="north" style="left:${50+50*Math.sin(a)}%;top:${50-50*Math.cos(a)}%">N</span>`;}
+  for(const x of ins){
+    let best=null;
+    for(const off of [0,14,-14,28,-28,42,-42]){for(const dr of [0,6,-6]){const r=Math.min(47,Math.max(9,x.s/range*47+dr)),a=(x.b-hd+off)*rad,px=50+r*Math.sin(a),py=50-r*Math.cos(a);if(!placed.some(p=>Math.hypot(p[0]-px,p[1]-py)<9.5)){best=[px,py];break;}}if(best)break;}
+    if(!best){const r=Math.min(47,Math.max(9,x.s/range*47)),a=(x.b-hd)*rad;best=[50+r*Math.sin(a),50-r*Math.cos(a)];}
+    placed.push(best);const o=openState(x.d);
+    h+=`<button type="button" class="blip ${o.open?"":"closed"} ${x.d.top?"top":""} ${seen[x.d.id]?"done":""} ${sel===x.d.id?"sel":""}" style="left:${best[0].toFixed(1)}%;top:${best[1].toFixed(1)}%" data-blip="${x.d.id}" aria-label="${esc(x.d.n)} ${fd(x.s)}">${CAT[x.d.cat].e}</button>`;
+  }
+  h+=`<div class="me" aria-hidden="true"></div>`;
+  $("scope").innerHTML=h;
+  const out=items.length-ins.length;
+  $("rfoot").innerHTML=(ins.length?`${fd(range)} 안에 ${ins.length}곳`:`${fd(range)} 안에는 없어요`)+(out&&range<5?`<button type="button" id="wider">범위 넓히기</button>`:"")+(heading!==null?" · 폰이 향한 쪽이 위":"");
+  if(!sel||!ins.some(x=>x.d.id===sel)){const c=ins.find(x=>openState(x.d).open)||ins[0]||items[0];sel=c?c.d.id:null;document.querySelectorAll(".blip").forEach(b=>b.classList.toggle("sel",b.dataset.blip===sel));}
+  const p=$("peek");if(sel){p.hidden=false;p.innerHTML=peekHtml(D[byId[sel]]);p.dataset.go="p-"+sel;}else p.hidden=true;
 }
-$("filters").addEventListener("click",e=>{const b=e.target.closest("button");if(b){cur=b.dataset.c;draw();}});
-$("cards").addEventListener("click",e=>{
-  const c=e.target.closest("[data-copy]"),o=e.target.closest("[data-org]");
-  if(c){const d=D[+c.dataset.copy],t=d.n+", "+clean(d.addr);
-    (async()=>{try{await navigator.clipboard.writeText(t);toast("주소를 복사했습니다");}catch(err){
-      const ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;left:0;top:0;opacity:0";document.body.appendChild(ta);ta.select();
-      let ok=false;try{ok=document.execCommand("copy");}catch(e2){}ta.remove();toast(ok?"주소를 복사했습니다":"복사가 막혔습니다. 주소를 길게 눌러 복사하세요");}})();}
-  const ex=e.target.closest("[data-ex]");
-  if(ex){const k=+ex.dataset.ex;openSet.has(k)?openSet.delete(k):openSet.add(k);const y=window.scrollY;draw();window.scrollTo(0,y);return;}
-  const mi=e.target.closest("[data-m]");
-  if(mi&&!c&&!o){const [a,b]=mi.dataset.m.split("_");const x=D[+a].m[+b];showBig(x[0],x[1],true);return;}
-  if(o){stopGps();org=D[+o.dataset.org];fillOrg();draw();toast("출발지: "+org.n);window.scrollTo(0,0);}
-});
+function nowPicks(n){const v=vn(),h=v.min/60;let lab,cs;
+  if(h>=5&&h<10){lab="아침, 해장";cs=["noodle","rice","snack"];}else if(h>=10&&h<14){lab="점심";cs=["noodle","rice","nem","seafood","meat"];}else if(h>=14&&h<17){lab="간식";cs=["dessert","snack","noodle"];}else if(h>=17&&h<21){lab="저녁";cs=["seafood","meat","nem"];}else{lab="2차";cs=["beer","seafood"];}
+  const c=D.filter(d=>d!==org&&cs.includes(d.cat)&&!seen[d.id]&&openState(d).open).map(d=>({d,s:km(org,d)})).sort((a,b)=>(a.s-(a.d.top?.8:0))-(b.s-(b.d.top?.8:0))).slice(0,n).map(x=>x.d);
+  return {lab,list:c};}
+function renderHome(){
+  const v=vn();$("herosub").textContent="남자 8명, 별점 조작 걸러낸 30곳";
+  $("where").innerHTML=`📍 ${esc(orgName())} 기준 <i>바꾸기</i>`;
+  renderRadar();
+  $("cats").innerHTML=Object.entries(CAT).map(([k,c])=>`<button type="button" data-go="c-${k}"><span aria-hidden="true">${c.e}</span><b>${c.n}</b><small>${D.filter(d=>d.cat===k).length}곳</small></button>`).join("");
+  const np=nowPicks(4);$("nowtitle").textContent=`지금 ${np.lab}으로 좋은 곳`;
+  $("nowrows").innerHTML=np.list.length?np.list.map(rowHtml).join(""):`<li class="empty">지금 문 연 추천 가게가 없어요.</li>`;
+  const n=Object.values(seen).filter(Boolean).length;
+  $("stampbar").innerHTML=`<b>도장깨기 ${n} / ${D.length}</b><div class="bar"><i style="width:${n/D.length*100}%"></i></div><small>${rank(n)} · 다녀온 집에 도장을 찍어요</small>`;
+}
+const rank=n=>n===0?"아직 배고픔":n<5?"입맛 도는 중":n<10?"현지인 다 됨":n<20?"나트랑 접수":"사실상 주민";
+
+/* ---------- list ---------- */
+let listCat="all";
+function renderList(cat){listCat=cat;const c=CAT[cat];
+  $("ltitle").textContent=c?c.e+" "+c.n:"전체 30곳";
+  $("lstrip").innerHTML=`<button type="button" data-go="c-all" aria-pressed="${cat==="all"}">전체</button>`+Object.entries(CAT).map(([k,x])=>`<button type="button" data-go="c-${k}" aria-pressed="${k===cat}">${x.e} ${x.n}</button>`).join("");
+  $("ltog").innerHTML=[["open","지금 문 연 집"],["near","가까운 순"],["big","8명 편한 집"]].map(([k,t])=>`<button type="button" data-tog="${k}" aria-pressed="${!!tog[k]}">${t}</button>`).join("")+`<button type="button" id="lwhere">📍 ${esc(orgName())} 기준</button>`;
+  let l=D.filter(d=>(cat==="all"||d.cat===cat)&&(!tog.open||openState(d).open)&&(!tog.big||d.big));
+  if(tog.near||org.gps)l=l.slice().sort((a,b)=>km(org,a)-km(org,b));
+  $("lrows").innerHTML=l.length?l.map(rowHtml).join(""):`<li class="empty">조건에 맞는 집이 없어요.<br>위의 조건을 꺼 보세요.</li>`;
+  const act=$("lstrip").querySelector('[aria-pressed="true"]');if(act)act.scrollIntoView({inline:"center",block:"nearest"});
+}
+
+/* ---------- detail ---------- */
+function renderDetail(id){const d=D[byId[id]];if(!d){go("home");return;}
+  const m=mv(d),o=openState(d),t=d.hist.reduce((a,b)=>a+b,0),f5=Math.round(d.hist[0]/t*100),mx=Math.max(...d.hist),here=org===d;
+  $("v-detail").innerHTML=`
+<div class="dhead"><div class="l1"><button class="back" type="button" data-back aria-label="뒤로">‹</button><span class="cat">${CAT[d.cat].e} ${CAT[d.cat].n}${d.must?" · 꼭 가는 곳":d.top?" · 추천":""}</span></div>
+<h1 lang="vi">${esc(d.n)}</h1><p>${esc(d.sub)}</p><span class="st ${o.open?"op":""}"><span class="dot"></span>${esc(o.txt)}</span></div>
+<div class="stats"><div><b class="num">${here?"여기":fd(m.s)}</b><small>${here?"지금 기준점":orgName()+"에서 "+how(m)}</small></div><div><b class="num">${here?"-":man(m.two)}</b><small>${here?"":"그랩 2대, 약 "+m.won.toLocaleString()+"원"}</small></div><div><b class="num">★ ${d.r}</b><small>구글 리뷰 ${d.rc.toLocaleString()}개</small></div></div>
+<div class="acts"><a class="gmap" href="${gmap(d)}"><span aria-hidden="true">🗺️</span>구글맵에서 보기</a><a class="dir" href="${gdir(d)}"><span aria-hidden="true">🧭</span>길찾기</a><a class="grab" href="${grab(d)}"><span aria-hidden="true">🚕</span>그랩 부르기</a></div>
+<div class="block"><h2>이렇게 주문하세요</h2><ul class="menu">${d.m.map((x,k)=>`<li><div><b lang="vi">${esc(x[0])}</b><small>${esc(x[1])}</small></div><button type="button" data-big="${d.id}|${k}">크게 보기</button></li>`).join("")}</ul></div>
+<div class="block"><h2>왜 이 집인가요</h2><p>${esc(d.why)}</p></div>
+${d.note?`<div class="block"><div class="note">${esc(d.note)}</div></div>`:""}
+<div class="block"><h2>8명이 가면</h2><p>${esc(d.grp)}</p></div>
+<div class="block"><h2>별점 검증</h2><div class="hist">${d.hist.map((c,i)=>`<div><span>${5-i}점</span><i><u style="width:${Math.max(1,c/mx*100)}%"></u></i><span class="num">${c.toLocaleString()}</span></div>`).join("")}</div>
+<div class="verdict ${f5>=90?"bad":""}">${f5>=90?`5점이 ${f5}%로 쏠려 있어요. 리뷰 관리를 하는 집일 수 있습니다.`:`5점이 ${f5}%. 별점이 자연스럽게 퍼져 있어요.`}</div></div>
+<div class="block"><h2>가게 정보</h2>
+<div class="kv"><span>영업</span><div class="num">${esc(d.h)}</div><i></i></div>
+<div class="kv"><span>주소</span><div lang="vi">${esc(d.addr)}</div><button type="button" data-copy="${d.id}">복사</button></div>
+${d.tel?`<div class="kv"><span>전화</span><div class="num">${esc(d.tel.replace(/^\+84(\d{3})(\d{3})(\d+)$/,"+84 $1 $2 $3"))}</div><a href="tel:${d.tel}">전화하기</a></div>`:""}
+</div>
+<button class="stampbtn ${seen[d.id]?"done":""}" type="button" data-stamp="${d.id}">${seen[d.id]?"도장 찍음 ✓":"다녀왔어요, 도장 쾅"}</button>
+<button class="linkbtn" type="button" data-org="${d.id}">${here?"지금 이 집을 기준으로 거리를 보고 있어요":"이 집을 기준으로 다른 집 거리 보기"}</button>`;
+}
+
+/* ---------- map ---------- */
+function renderMap(){
+  if(typeof L==="undefined"){$("lmap").innerHTML='<p class="empty">지도를 불러오지 못했어요.</p>';return;}
+  if(!mapObj){
+    mapObj=L.map("lmap",{zoomControl:false,attributionControl:true}).setView([Z[0].lat,Z[0].lng],14);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(mapObj);
+    mapObj.markers={};
+    L.marker([Z[0].lat,Z[0].lng],{icon:L.divIcon({className:"",html:'<div class="pin h">🏨</div>',iconSize:[34,34],iconAnchor:[17,17]}),interactive:false}).addTo(mapObj);
+    D.forEach(d=>{const mk=L.marker([d.lat,d.lng],{icon:pinIcon(d)}).addTo(mapObj);mk.on("click",()=>{mapSel=d.id;drawMapSel();});mapObj.markers[d.id]=mk;});
+    mapObj.on("click",()=>{mapSel=null;drawMapSel();});
+    mapObj.fitBounds(L.latLngBounds(D.filter(d=>km(Z[0],d)<3).map(d=>[d.lat,d.lng])),{padding:[30,30]});
+  }
+  setTimeout(()=>mapObj.invalidateSize(),50);
+  D.forEach(d=>mapObj.markers[d.id].setIcon(pinIcon(d)));
+  if(org.gps){if(!mapObj.me)mapObj.me=L.marker([org.lat,org.lng],{icon:L.divIcon({className:"",html:'<div class="mepin"></div>',iconSize:[18,18],iconAnchor:[9,9]}),interactive:false}).addTo(mapObj);else mapObj.me.setLatLng([org.lat,org.lng]);}
+  drawMapSel();
+}
+function pinIcon(d){const o=openState(d);return L.divIcon({className:"",html:`<div class="pin ${o.open?"":"closed"} ${mapSel===d.id?"sel":""}">${CAT[d.cat].e}</div>`,iconSize:[34,34],iconAnchor:[17,17]});}
+function drawMapSel(){const p=$("mappeek");D.forEach(d=>mapObj.markers[d.id].setIcon(pinIcon(d)));if(mapSel){p.hidden=false;p.innerHTML=peekHtml(D[byId[mapSel]]);p.dataset.go="p-"+mapSel;}else p.hidden=true;}
+
+/* ---------- plan ---------- */
+function renderPlan(){const v=vn();if(planDay===null){const i=PLAN.findIndex(p=>p.d===v.md);planDay=i>=0?i:0;}
+  $("days").innerHTML=PLAN.map((p,i)=>`<button type="button" data-day="${i}" aria-pressed="${i===planDay}"><b>${p.w}</b>${p.d}${p.d===v.md?" 오늘":""}</button>`).join("");
+  const p=PLAN[planDay];
+  $("tl").innerHTML=p.items.map(it=>`<li><time class="num">${it[0]}</time><div><h3>${esc(it[1])}</h3>${it[2]?`<p>${esc(it[2])}</p>`:""}${it[3].map((id,k)=>{const d=D[byId[id]],m=mv(d);return `<button class="pl" type="button" data-go="p-${id}"><span aria-hidden="true">${CAT[d.cat].e}</span><div><b lang="vi">${esc(d.n)}</b><small>${k>0?"대안 · ":""}${esc(d.sub)}</small></div><i class="num">${fd(m.s)}</i></button>`}).join("")}</div></li>`).join("");
+}
+
+/* ---------- stamps ---------- */
+function renderStamps(){const n=Object.values(seen).filter(Boolean).length;
+  $("stitle").textContent=`도장깨기 ${n} / ${D.length}`;$("ssub").textContent=rank(n)+(n<D.length?` · 다음 등급까지 ${[5,10,20,30].find(x=>x>n)-n}곳`:"");
+  $("board").innerHTML=D.map(d=>`<button type="button" class="${seen[d.id]?"on":""}" data-go="p-${d.id}"><span class="s" aria-hidden="true">${CAT[d.cat].e}</span><small lang="vi">${esc(d.n)}</small></button>`).join("");
+}
+
+/* ---------- sheets ---------- */
+function openWhere(){
+  $("sheetin").innerHTML=`<h2>어디 기준으로 볼까요?</h2><button class="opt" type="button" data-gps aria-pressed="${!!org.gps}"><span>📍 지금 내 위치<small>${org.gps?"GPS 켜짐, 정확도 약 "+Math.round(org.acc||0)+"m":"폰 GPS를 씁니다. 위치는 이 폰 안에서만 쓰여요"}</small></span></button>`+Z.map((z,i)=>`<button class="opt" type="button" data-z="${i}" aria-pressed="${org===z}"><span>${esc(z.n)}${z.hint?`<small>${z.hint}</small>`:""}</span></button>`).join("")+`<button class="btn" type="button" data-close style="width:100%">닫기</button>`;
+  $("sheet").classList.add("on");
+}
+let rTimer=null,rCat="all",rOpen=true;
+function openRoulette(){rOpen=true;drawRoulette(null);$("sheet").classList.add("on");}
+function rPool(){return D.filter(d=>d!==org&&(rCat==="all"||d.cat===rCat)&&(!rOpen||openState(d).open)&&!seen[d.id]);}
+function drawRoulette(win){const pool=rPool();
+  $("sheetin").innerHTML=`<h2>오늘 어디 가지?</h2>
+<div class="strip" style="padding:0 0 10px">${[["all","아무거나"],...Object.entries(CAT).map(([k,c])=>[k,c.e+" "+c.n])].map(([k,t])=>`<button type="button" data-rcat="${k}" aria-pressed="${k===rCat}">${t}</button>`).join("")}</div>
+<div class="reel ${win?"win":""}" id="reel">${win?`<div class="e">${CAT[win.cat].e}</div><b lang="vi">${esc(win.n)}</b><small>${esc(win.sub)} · ${fd(km(org,win))}</small>`:`<div class="e">🎰</div><b>${pool.length?"후보 "+pool.length+"곳":"후보가 없어요"}</b><small>${pool.length?"지금 문 열었고 아직 안 가 본 집":"종류를 바꾸거나 아래 조건을 꺼 보세요"}</small>`}</div>
+<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:14px"><input type="checkbox" id="ropen" ${rOpen?"checked":""}> 지금 문 연 집만</label>
+<div class="rbtns">${win?`<button class="btn" type="button" data-spin>다시 돌리기</button><button class="btn pri" type="button" data-go="p-${win.id}" data-close>여기로 가자</button>`:`<button class="btn" type="button" data-close>닫기</button><button class="btn red" type="button" data-spin ${pool.length?"":"disabled"}>돌리기</button>`}</div>`;
+}
+function spin(){const pool=rPool();if(!pool.length)return;const win=pool[Math.floor(Math.random()*pool.length)],reel=$("reel");reel.classList.remove("win");
+  const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;let i=0,delay=60;const total=reduce?1:14+Math.floor(Math.random()*5);
+  (function tick(){const d=pool[Math.floor(Math.random()*pool.length)];reel.innerHTML=`<div class="e">${CAT[d.cat].e}</div><b lang="vi">${esc(d.n)}</b><small>두구두구…</small>`;i++;if(i<total){delay*=1.1;rTimer=setTimeout(tick,delay);}else{drawRoulette(win);if(navigator.vibrate)navigator.vibrate(60);}})();
+}
+let qty=1,showCtx=null;
+function showBig(vi,ko,q){showCtx={vi,ko,q};qty=1;drawShow();$("show").classList.add("on");}
+function drawShow(){$("showvi").textContent=showCtx.vi;$("showko").textContent=showCtx.ko;$("showqty").style.display=showCtx.q?"flex":"none";$("qn").textContent=qty;$("showq").textContent=showCtx.q?"Số lượng: "+qty:"";}
+
+/* ---------- gps & compass ---------- */
 let watch=null,lastFix=null;
-function stopGps(){if(watch!==null){navigator.geolocation.clearWatch(watch);watch=null;}lastFix=null;try{localStorage.setItem("nt_gps","0")}catch(e){}}
+function stopGps(){if(watch!==null){navigator.geolocation.clearWatch(watch);watch=null;}lastFix=null;store.set("nt_gps",0);}
 function startGps(quiet){
-  if(!navigator.geolocation){if(!quiet)toast("이 브라우저는 위치를 지원하지 않습니다");return;}
-  if(watch!==null)return;
-  if(!quiet)toast("위치 확인 중…");
-  watch=navigator.geolocation.watchPosition(p=>{
-    const c={lat:p.coords.latitude,lng:p.coords.longitude};
-    if(lastFix&&org.gps&&km(lastFix,c)<0.04){org.acc=p.coords.accuracy;return;}
+  if(!navigator.geolocation){if(!quiet)toast("이 브라우저에서는 위치를 쓸 수 없어요");return;}
+  if(watch!==null)return;if(!quiet)toast("위치를 찾는 중…");
+  watch=navigator.geolocation.watchPosition(p=>{const c={lat:p.coords.latitude,lng:p.coords.longitude};
+    if(lastFix&&org.gps&&km(lastFix,c)<.03){org.acc=p.coords.accuracy;return;}
     const first=!org.gps;lastFix=c;org={n:"현위치",lat:c.lat,lng:c.lng,gps:true,acc:p.coords.accuracy};
-    if(first){near=true;$("near").checked=true;try{localStorage.setItem("nt_gps","1")}catch(e){}if(!quiet)toast("현위치 기준 · 가까운 순으로 정렬했습니다");}
-    fillOrg();draw();
-  },err=>{const was=watch;if(was!==null){navigator.geolocation.clearWatch(was);watch=null;}if(!quiet)toast(err.code===1?"위치 권한이 거부됐습니다. 브라우저 설정에서 이 사이트의 위치를 허용해 주세요":"위치를 못 잡았습니다. 잠시 뒤 다시 눌러 주세요");},{enableHighAccuracy:true,maximumAge:15000,timeout:20000});
+    if(first){range=null;sel=null;store.set("nt_gps",1);if(!quiet)toast("지금 위치 기준으로 바꿨어요");startCompass();}
+    rerender();
+  },err=>{if(watch!==null){navigator.geolocation.clearWatch(watch);watch=null;}if(!quiet)toast(err.code===1?"위치 권한이 꺼져 있어요. 브라우저 설정에서 허용해 주세요":"위치를 못 찾았어요. 잠시 뒤 다시 눌러 주세요");},{enableHighAccuracy:true,maximumAge:15000,timeout:20000});
 }
-$("zones").addEventListener("click",e=>{
-  if(e.target.closest("#gps")){startGps(false);return;}
-  const b=e.target.closest("[data-z]");if(!b)return;stopGps();org=Z[+b.dataset.z];fillOrg();draw();});
-$("cards").addEventListener("change",e=>{const s=e.target.closest("[data-seen]");if(!s)return;seen[s.dataset.seen]=s.checked?1:0;try{localStorage.setItem("nt_seen",JSON.stringify(seen))}catch(err){}const y=window.scrollY;draw();window.scrollTo(0,y);});
-$("onlyopen").addEventListener("change",e=>{onlyopen=e.target.checked;draw();});
-$("showx").addEventListener("click",()=>$("show").classList.remove("on"));
-$("qp").addEventListener("click",()=>{qty=Math.min(20,qty+1);renderShow();});
-$("qm").addEventListener("click",()=>{qty=Math.max(1,qty-1);renderShow();});
-$("phr").innerHTML=PH.map((p,i)=>`<button type="button" data-p="${i}"><b lang="vi">${esc(p[0])}</b><span>${esc(p[1])}</span></button>`).join("");
-$("phr").addEventListener("click",e=>{const b=e.target.closest("[data-p]");if(b){const p=PH[+b.dataset.p];showBig(p[0],p[1],false);}});
-$("now").addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g)goCard(+g.dataset.go);});
-document.querySelectorAll("#plan .tl b").forEach(b=>{const k=b.textContent.trim();const i=D.findIndex(d=>d.n.includes(k));if(i>=0){b.classList.add("go2");b.setAttribute("role","link");b.tabIndex=0;b.addEventListener("click",()=>goCard(i));}});
-$("near").addEventListener("change",e=>{near=e.target.checked;draw();});
-document.querySelector("nav.tabs").addEventListener("click",e=>{
-  const b=e.target.closest("button");if(!b)return;
-  document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
-  ["list","plan","tips"].forEach(id=>$(id).hidden=id!==b.dataset.tab);
-  window.scrollTo(0,0);
+let compOn=false,lastHd=0;
+function startCompass(){if(compOn)return;compOn=true;
+  const h=e=>{let a=null;if(typeof e.webkitCompassHeading==="number")a=e.webkitCompassHeading;else if(e.absolute&&e.alpha!==null)a=360-e.alpha;if(a===null)return;
+    const now=Date.now();if(heading!==null&&Math.abs(((a-heading+540)%360)-180)<6&&now-lastHd<1500)return;if(now-lastHd<250)return;lastHd=now;heading=(a+360)%360;if(route.view==="home"&&org.gps)renderRadar();};
+  window.addEventListener("deviceorientationabsolute",h);window.addEventListener("deviceorientation",h);
+}
+
+/* ---------- router ---------- */
+let route={view:"home"},scrolls={},prevKey="home",stack=[];
+function parse(){const h=location.hash.replace(/^#/,"");if(h.startsWith("p-"))return {view:"detail",id:h.slice(2),key:h};if(h.startsWith("c-"))return {view:"list",cat:h.slice(2),key:h};if(["map","plan","stamps","guide"].includes(h))return {view:h,key:h};return {view:"home",key:"home"};}
+function go(h){if(location.hash.replace(/^#/,"")===h)rerender();else location.hash=h;}
+function rerender(){const r=route;
+  if(r.view==="home")renderHome();else if(r.view==="list")renderList(CAT[r.cat]?r.cat:"all");else if(r.view==="detail")renderDetail(r.id);else if(r.view==="map")renderMap();else if(r.view==="plan")renderPlan();else if(r.view==="stamps")renderStamps();}
+function onRoute(){scrolls[prevKey]=window.scrollY;route=parse();
+  let isBack=false;if(stack.length>1&&stack[stack.length-2]===route.key){stack.pop();isBack=true;}else if(stack[stack.length-1]!==route.key)stack.push(route.key);
+  ["home","list","detail","map","plan","stamps","guide"].forEach(v=>$("v-"+v).hidden=v!==route.view);
+  document.body.classList.toggle("detail-open",route.view==="detail");
+  const tab=route.view==="list"||route.view==="detail"?(prevTab||"home"):route.view;if(route.view!=="list"&&route.view!=="detail")prevTab=route.view;
+  document.querySelectorAll(".tabbar button").forEach(b=>b.getAttribute("data-go")===tab?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
+  rerender();
+  window.scrollTo(0,isBack?(scrolls[route.key]||0):0);prevKey=route.key;
+}
+let prevTab="home";
+window.addEventListener("hashchange",onRoute);
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const t=e.target;
+  const big=t.closest("[data-big]");if(big){const [id,k]=big.dataset.big.split("|");const x=D[byId[id]].m[+k];showBig(x[0],x[1],true);return;}
+  if(t.closest("[data-back]")){if(stack.length>1)history.back();else{stack=[];location.replace("#home");}return;}
+  const cp=t.closest("[data-copy]");if(cp){const d=D[byId[cp.dataset.copy]],txt=d.n+", "+d.addr;(async()=>{try{await navigator.clipboard.writeText(txt);toast("주소를 복사했어요");}catch(err){toast("복사가 안 됐어요. 주소를 길게 눌러 복사해 주세요");}})();return;}
+  const st=t.closest("[data-stamp]");if(st){const id=st.dataset.stamp;seen[id]=seen[id]?0:1;store.set("nt_seen",seen);if(seen[id]){const fx=document.createElement("div");fx.className="stampfx";fx.innerHTML="<div>쾅</div>";document.body.appendChild(fx);setTimeout(()=>fx.remove(),750);if(navigator.vibrate)navigator.vibrate([40,30,80]);}renderDetail(id);return;}
+  const og=t.closest("[data-org]");if(og){stopGps();org=D[byId[og.dataset.org]];range=null;sel=null;toast("이 집 기준으로 바꿨어요");renderDetail(og.dataset.org);return;}
+  const bl=t.closest("[data-blip]");if(bl){if(sel===bl.dataset.blip){go("p-"+sel);return;}sel=bl.dataset.blip;renderRadar();return;}
+  const rr=t.closest("[data-r]");if(rr){range=+rr.dataset.r;sel=null;renderRadar();return;}
+  if(t.closest("#wider")){range=[.5,1,2,5][Math.min(3,[.5,1,2,5].indexOf(range)+1)];sel=null;renderRadar();return;}
+  if(t.closest("#where")||t.closest("#lwhere")){openWhere();return;}
+  if(t.closest("#roulopen")){openRoulette();return;}
+  if(t.closest("#stampbar")){go("stamps");return;}
+  if(t.closest("#mapme")){if(org.gps&&mapObj)mapObj.setView([org.lat,org.lng],16);else{startGps(false);}return;}
+  const tg=t.closest("[data-tog]");if(tg){tog[tg.dataset.tog]=!tog[tg.dataset.tog];store.set("nt_tog",tog);renderList(listCat);return;}
+  const dy=t.closest("[data-day]");if(dy){planDay=+dy.dataset.day;renderPlan();return;}
+  const ph=t.closest("[data-p]");if(ph){const p=PH[+ph.dataset.p];showBig(p[0],p[1],false);return;}
+  if(t.closest("[data-gps]")){$("sheet").classList.remove("on");startGps(false);return;}
+  const z=t.closest("[data-z]");if(z){stopGps();org=Z[+z.dataset.z];range=null;sel=null;$("sheet").classList.remove("on");rerender();return;}
+  const rc=t.closest("[data-rcat]");if(rc){rCat=rc.dataset.rcat;clearTimeout(rTimer);drawRoulette(null);return;}
+  if(t.closest("[data-spin]")){clearTimeout(rTimer);spin();return;}
+  const g=t.closest("[data-go]");
+  if(t.closest("[data-close]")||t===$("sheet")){clearTimeout(rTimer);$("sheet").classList.remove("on");if(!g)return;}
+  if(g){go(g.dataset.go);return;}
 });
-fillOrg();draw();
-(async()=>{let want="0";try{want=localStorage.getItem("nt_gps")||"0"}catch(e){}
-  try{const p=await navigator.permissions.query({name:"geolocation"});if(p.state==="granted"&&want==="1")startGps(true);}catch(e){}})();
-setInterval(()=>{if(!$("show").classList.contains("on")&&!$("list").hidden){const y=window.scrollY;draw();window.scrollTo(0,y);}},60000);
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+document.addEventListener("change",e=>{if(e.target.id==="ropen"){rOpen=e.target.checked;drawRoulette(null);}});
+$("showx").addEventListener("click",()=>$("show").classList.remove("on"));
+$("qp").addEventListener("click",()=>{qty=Math.min(30,qty+1);drawShow();});
+$("qm").addEventListener("click",()=>{qty=Math.max(1,qty-1);drawShow();});
+$("phr").innerHTML=PH.map((p,i)=>`<button type="button" data-p="${i}"><b lang="vi">${esc(p[0])}</b><small>${esc(p[1])}</small></button>`).join("");
+
+onRoute();
+(async()=>{try{const p=await navigator.permissions.query({name:"geolocation"});if(p.state==="granted"&&store.get("nt_gps",0))startGps(true);}catch(e){}})();
+setInterval(()=>{if(!$("show").classList.contains("on")&&!$("sheet").classList.contains("on")&&route.view!=="detail"&&route.view!=="guide"){const y=window.scrollY;rerender();window.scrollTo(0,y);}},60000);
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>
